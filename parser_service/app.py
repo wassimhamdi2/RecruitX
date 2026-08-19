@@ -26,14 +26,20 @@ SKILLS = [
 SKILLS.sort(key=len, reverse=True)
 
 SECTION_HEADERS = {
-    "experience": ["work experience", "professional experience", "employment", "experience", "career history"],
-    "education": ["education", "academic", "qualifications", "formation"],
-    "skills": ["technical skills", "skills", "technologies", "tools"],
+    "experience": [
+        "work experience", "professional experience", "employment", "experience", "career history",
+        "expérience professionnelle", "expérience", "parcours professionnel", "emploi",
+    ],
+    "education": ["education", "academic", "qualifications", "formation", "études", "diplômes", "diplome"],
+    "skills": ["technical skills", "skills", "technologies", "tools", "compétences", "competences"],
 }
 
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+# Generic international phone: optional +country code, digits grouped by 2-4
+# with spaces/dots/dashes, at least 8 digits total (US, FR 0X XX XX XX XX,
+# +33 6 XX XX XX XX, +1 555 123 4567, etc.). Matches any country, not just FR.
 PHONE_RE = re.compile(
-    r"(?:\+?\d{1,3}[ .\t-]?)?(?:\(?\d{2,4}\)?[ .\t-]?)?\d{3}[ .\t-]?\d{3,4}(?:[ .\t-]?\d{2,4})?"
+    r"(?:\+?\d{1,4}[ .\t-]?)?(?:\(?\d{1,4}\)?[ .\t-]?)?\d{1,4}[ .\t-]?\d{2,4}[ .\t-]?\d{2,4}(?:[ .\t-]?\d{2,4})?"
 )
 YEAR_RE = re.compile(r"(?:19|20)\d{2}")
 DATE_RANGE_RE = re.compile(
@@ -177,12 +183,19 @@ def parse(file: UploadFile = File(...)):
     if not text.strip():
         raise HTTPException(status_code=422, detail="no extractable text")
     sec = sections(text)
-    phone = next((PHONE_RE.search(line).group(0).strip() for line in text.splitlines() if PHONE_RE.search(line)), None)
+    # Prefer the phone-like match with the most digits across all lines
+    # (avoids grabbing zip codes or address numbers).
+    best_phone, best_phone_digits = None, 0
+    for line in text.splitlines():
+        for m in PHONE_RE.finditer(line):
+            digits = sum(c.isdigit() for c in m.group(0))
+            if digits >= 8 and digits > best_phone_digits:
+                best_phone, best_phone_digits = m.group(0).strip(), digits
     email = EMAIL_RE.search(text).group(0) if EMAIL_RE.search(text) else None
     return {
         "name": extract_name(text, sec),
         "email": email,
-        "phone": phone,
+        "phone": best_phone,
         "address": None,
         "skills": extract_skills(text),
         "education": extract_education(sec.get("education", "")),

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../store/auth'
@@ -9,6 +9,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const user = useAuth((s) => s.user)
   const logout = useAuth((s) => s.logout)
   const navigate = useNavigate()
+  const location = useLocation()
   const isStaff = user?.roles.some((r) => r === 'recruiter' || r === 'admin')
   const isAdmin = user?.roles.includes('admin')
 
@@ -30,16 +31,24 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     { label: 'Admin', to: '/admin', show: isAdmin },
   ].filter((n) => n.show)
 
+  const isActive = (to: string) =>
+    location.pathname === to || (to !== '/jobs' && location.pathname.startsWith(to))
+
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-10 border-b border-white/60 bg-white/60 backdrop-blur-md">
+      <header className="sticky top-0 z-10 border-b border-white/60 bg-white/75 shadow-[0_1px_2px_rgba(2,60,99,0.06)] backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="font-display text-lg font-semibold text-foreground"
+            className="group flex items-center gap-2"
           >
-            RecruitX
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-secondary to-primary text-sm font-bold text-white shadow-md shadow-primary/30 transition-transform duration-200 group-hover:scale-105">
+              R
+            </span>
+            <span className="font-display text-lg font-semibold tracking-tight text-foreground">
+              RecruitX
+            </span>
           </button>
           <nav className="flex items-center gap-1">
             {nav.map((n) => (
@@ -47,7 +56,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 key={n.to}
                 type="button"
                 onClick={() => navigate(n.to)}
-                className="rounded-lg px-3 py-2 text-sm font-medium text-foreground/70 transition-colors hover:bg-white/70 hover:text-foreground"
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 ${
+                  isActive(n.to)
+                    ? 'bg-white text-primary shadow-sm ring-1 ring-line'
+                    : 'text-foreground/70 hover:bg-white/70 hover:text-foreground'
+                }`}
               >
                 {n.label}
               </button>
@@ -107,7 +120,7 @@ function NotificationBell({ isStaff }: { isStaff: boolean }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="relative rounded-lg px-3 py-2 text-lg leading-none text-foreground/70 transition-colors hover:bg-white/70 hover:text-foreground"
+        className="relative rounded-lg px-3 py-2 text-lg leading-none text-foreground/70 transition-all duration-150 hover:bg-white/70 hover:text-foreground"
         aria-label="Notifications"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
@@ -115,16 +128,16 @@ function NotificationBell({ isStaff }: { isStaff: boolean }) {
           <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
         </svg>
         {unread.data ? (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-white">
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-br from-accent to-emerald-600 px-1 text-[10px] font-semibold text-white shadow-sm">
             {unread.data > 9 ? '9+' : unread.data}
           </span>
         ) : null}
       </button>
       {open ? (
-        <div className="absolute right-0 top-full mt-2 w-80 overflow-hidden rounded-xl border border-white/60 bg-white shadow-lg">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5">
+        <div className="absolute right-0 top-full mt-2 w-80 overflow-hidden rounded-xl border border-white/70 bg-white shadow-xl shadow-sky-900/10">
+          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-4 py-2.5">
             <span className="text-sm font-semibold">Notifications</span>
-            <button type="button" onClick={markAllRead} className="text-xs text-primary hover:underline">
+            <button type="button" onClick={markAllRead} className="text-xs font-medium text-primary hover:underline">
               Mark all read
             </button>
           </div>
@@ -135,7 +148,7 @@ function NotificationBell({ isStaff }: { isStaff: boolean }) {
                   key={n.id}
                   type="button"
                   onClick={() => openNotification(n.id, n.data)}
-                  className={`block w-full border-b border-slate-50 px-4 py-3 text-left text-sm transition-colors hover:bg-slate-50 ${n.read_at ? 'text-foreground/60' : 'bg-sky-50 text-foreground'}`}
+                  className={`block w-full border-b border-slate-50 px-4 py-3 text-left text-sm transition-colors duration-150 hover:bg-sky-50/70 ${n.read_at ? 'text-foreground/60' : 'bg-sky-50/60 text-foreground'}`}
                 >
                   <p className="line-clamp-2">{n.data.message ?? n.type}</p>
                   <p className="mt-0.5 text-xs text-foreground/50">{new Date(n.created_at).toLocaleString()}</p>
