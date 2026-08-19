@@ -2,7 +2,10 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from '../components/ProtectedRoute'
 import { useAuth } from '../store/auth'
 import Dashboard from '../pages/Dashboard'
+import Jobs from '../pages/Jobs'
+import JobDetail from '../pages/JobDetail'
 import Login from '../pages/Login'
+import MyApplications from '../pages/MyApplications'
 import Register from '../pages/Register'
 
 export default function AppRouter() {
@@ -17,6 +20,30 @@ export default function AppRouter() {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/jobs"
+        element={
+          <ProtectedRoute>
+            <Jobs />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/jobs/:slug"
+        element={
+          <ProtectedRoute>
+            <JobDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/applications"
+        element={
+          <ProtectedRoute>
+            <MyApplications />
           </ProtectedRoute>
         }
       />
