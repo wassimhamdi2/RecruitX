@@ -39,7 +39,7 @@ class RolePermissionSeeder extends Seeder
         $recruiter = Role::findOrCreate('recruiter');
         $recruiter->syncPermissions([
             'companies.view',
-            'jobs.view', 'jobs.create', 'jobs.update',
+            'jobs.view', 'jobs.create', 'jobs.update', 'jobs.delete',
             'candidates.view',
             'applications.view', 'applications.update',
             'interviews.view', 'interviews.create', 'interviews.update',

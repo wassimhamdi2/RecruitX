@@ -19,7 +19,10 @@ export interface Job {
   title: string
   slug: string
   description: string
+  requirements: string | null
+  responsibilities: string | null
   company: string
+  company_id: number
   location: string
   employment_type: string
   work_mode: string
@@ -29,6 +32,8 @@ export interface Job {
   experience_min: number | null
   experience_max: number | null
   closing_date: string | null
+  status?: string
+  published_at?: string | null
   skills: { name: string; required_level: string | null; is_required: boolean }[]
 }
 
@@ -103,6 +108,11 @@ export interface ScheduleInterviewInput {
 export const listJobs = (params?: Record<string, string>) => api.get<{ data: Job[] }>('/jobs', { params })
 export const getJob = (slug: string) => api.get<{ data: Job }>(`/jobs/${slug}`)
 export const applyToJob = (id: number) => api.post(`/jobs/${id}/apply`)
+export const myJobs = () => api.get<{ data: Job[] }>('/recruiter/jobs')
+export const createJob = (data: Record<string, unknown>) => api.post<{ data: Job }>('/jobs', data)
+export const updateJob = (id: number, data: Record<string, unknown>) => api.patch<{ data: Job }>(`/jobs/${id}`, data)
+export const deleteJob = (id: number) => api.delete(`/jobs/${id}`)
+export const companies = () => api.get<{ data: { id: number; name: string }[] }>('/companies')
 export const myApplications = () => api.get<{ data: Application[] }>('/applications')
 export const recruiterApplications = (params?: Record<string, string>) =>
   api.get<{ data: Application[] }>('/recruiter/applications', { params })

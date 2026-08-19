@@ -14,6 +14,8 @@ class JobOfferResource extends JsonResource
             'title' => $this->title,
             'slug' => $this->slug,
             'description' => $this->description,
+            'requirements' => $this->requirements,
+            'responsibilities' => $this->responsibilities,
             'company' => $this->company->name,
             'company_id' => $this->company_id,
             'location' => $this->location,
@@ -25,6 +27,8 @@ class JobOfferResource extends JsonResource
             'experience_min' => $this->experience_min,
             'experience_max' => $this->experience_max,
             'closing_date' => $this->closing_date,
+            'status' => $this->status,
+            'published_at' => $this->published_at,
             'skills' => $this->whenLoaded('skills', $this->skills->map(fn ($s) => [
                 'name' => $s->name,
                 'required_level' => $s->pivot->required_level,

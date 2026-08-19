@@ -13,6 +13,7 @@ import AdminPanel from '../pages/AdminPanel'
 import RecruiterDashboard from '../pages/RecruiterDashboard'
 import RecruiterEvaluations from '../pages/RecruiterEvaluations'
 import RecruiterInterviews from '../pages/RecruiterInterviews'
+import RecruiterJobs from '../pages/RecruiterJobs'
 import Register from '../pages/Register'
 
 export default function AppRouter() {
@@ -77,6 +78,14 @@ export default function AppRouter() {
         element={
           <ProtectedRoute>
             {user?.roles.includes('admin') ? <AdminPanel /> : <Navigate to="/" replace />}
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruiter/jobs"
+        element={
+          <ProtectedRoute>
+            {isStaff ? <RecruiterJobs /> : <Navigate to="/" replace />}
           </ProtectedRoute>
         }
       />

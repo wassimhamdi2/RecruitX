@@ -27,6 +27,13 @@ Route::prefix('v1')->group(function () {
         Route::get('/jobs', [JobOfferController::class, 'index'])->middleware('permission:jobs.view');
         Route::get('/jobs/{job:slug}', [JobOfferController::class, 'show'])->middleware('permission:jobs.view');
 
+        Route::get('/recruiter/jobs', [JobOfferController::class, 'staffIndex'])->middleware('permission:jobs.view');
+        Route::post('/jobs', [JobOfferController::class, 'store'])->middleware('permission:jobs.create');
+        Route::patch('/jobs/{job}', [JobOfferController::class, 'update'])->middleware('permission:jobs.update');
+        Route::delete('/jobs/{job}', [JobOfferController::class, 'destroy'])->middleware('permission:jobs.delete');
+
+        Route::get('/companies', [AdminCompanyController::class, 'index'])->middleware('permission:companies.view');
+
         Route::post('/jobs/{job}/apply', [ApplicationController::class, 'store'])->middleware('permission:applications.create');
         Route::get('/applications', [ApplicationController::class, 'index'])->middleware('permission:applications.view-own');
 
