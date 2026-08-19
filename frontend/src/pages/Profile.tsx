@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { Resolver } from 'react-hook-form'
-import { downloadOwnCv, getMyProfile, updateMyProfile, uploadCv } from '../services/api'
-import type { CandidateProfile } from '../services/api'
+import { applyParsedCv, downloadOwnCv, getMyProfile, parseCv, updateMyProfile, uploadCv } from '../services/api'
+import type { CandidateProfile, ParsedCv } from '../services/api'
 import AppLayout from '../components/AppLayout'
 import { Button, Card, Input, Label } from '../components/ui'
 
@@ -58,7 +58,13 @@ export default function Profile() {
   const [saved, setSaved] = useState(false)
   const [cvName, setCvName] = useState('')
   const [cvError, setCvError] = useState('')
+  const [parsed, setParsed] = useState<ParsedCv | null>(null)
+  const [parseError, setParseError] = useState('')
+  const [parseLoading, setParseLoading] = useState(false)
+  const [applyLoading, setApplyLoading] = useState(false)
+  const [applied, setApplied] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
     queryKey: ['profile'],
@@ -103,10 +109,44 @@ export default function Profile() {
     try {
       const { data: res } = await uploadCv(file)
       setCvName(res.data.file_name)
+      setParsed(null)
+      setApplied(false)
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
     } catch (err: unknown) {
       const message = (err as { response?: { data?: { errors?: Record<string, string[]> } } })
         .response?.data?.errors
       setCvError(message ? Object.values(message)[0][0] : 'Upload failed')
+    }
+  }
+
+  const handleParse = async () => {
+    setParseError('')
+    setParseLoading(true)
+    try {
+      const { data: res } = await parseCv()
+      setParsed(res.data.parsed)
+      setApplied(false)
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message
+      setParseError(message ?? 'Parsing failed')
+    } finally {
+      setParseLoading(false)
+    }
+  }
+
+  const handleApply = async () => {
+    setParseError('')
+    setApplyLoading(true)
+    try {
+      await applyParsedCv()
+      setParsed(null)
+      setApplied(true)
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message
+      setParseError(message ?? 'Apply failed')
+    } finally {
+      setApplyLoading(false)
     }
   }
 
@@ -196,7 +236,7 @@ export default function Profile() {
             <p className="mt-1 text-sm text-foreground/70">
               PDF, DOC or DOCX — max 5 MB.
             </p>
-            <div className="mt-4">
+            <div className="mt-4 flex flex-wrap gap-2">
               <input
                 ref={fileRef}
                 type="file"
@@ -210,9 +250,77 @@ export default function Profile() {
               <Button className="ml-2" onClick={() => downloadOwnCv()}>
                 Download my CV
               </Button>
+              <Button className="ml-2" onClick={handleParse} disabled={parseLoading}>
+                {parseLoading ? 'Parsing…' : 'Parse CV'}
+              </Button>
             </div>
             {cvName && <p className="mt-3 text-sm font-medium text-accent">{cvName}</p>}
             {cvError && <p className="mt-3 text-sm text-destructive">{cvError}</p>}
+            {parseError && <p className="mt-3 text-sm text-destructive">{parseError}</p>}
+            {applied && <p className="mt-3 text-sm font-medium text-accent">Parsed data applied to your profile.</p>}
+
+            {parsed && (
+              <div className="mt-4 space-y-3 rounded-xl border border-line bg-white/70 p-4 text-sm">
+                <p className="font-display font-semibold">Extracted from your CV</p>
+                {parsed.name && (
+                  <p>
+                    <span className="text-foreground/60">Name:</span> {parsed.name}
+                  </p>
+                )}
+                {parsed.email && (
+                  <p>
+                    <span className="text-foreground/60">Email:</span> {parsed.email}
+                  </p>
+                )}
+                {parsed.phone && (
+                  <p>
+                    <span className="text-foreground/60">Phone:</span> {parsed.phone}
+                  </p>
+                )}
+                {parsed.skills.length > 0 && (
+                  <div>
+                    <span className="text-foreground/60">Skills:</span>{' '}
+                    {parsed.skills.join(', ')}
+                  </div>
+                )}
+                {parsed.education.length > 0 && (
+                  <div>
+                    <span className="text-foreground/60">Education:</span>
+                    <ul className="mt-1 list-disc pl-5 text-foreground/80">
+                      {parsed.education.map((e, i) => (
+                        <li key={i}>
+                          {e.institution}
+                          {e.degree ? ` — ${e.degree}` : ''}
+                          {e.start_date ? ` (${e.start_date}${e.end_date ? `–${e.end_date}` : ''})` : ''}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {parsed.experiences.length > 0 && (
+                  <div>
+                    <span className="text-foreground/60">Experience:</span>
+                    <ul className="mt-1 list-disc pl-5 text-foreground/80">
+                      {parsed.experiences.map((x, i) => (
+                        <li key={i}>
+                          {x.position}
+                          {x.company_name ? ` at ${x.company_name}` : ''}
+                          {x.start_date ? ` (${x.start_date}${x.end_date ? `–${x.end_date}` : ''})` : ''}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <div className="flex gap-2 pt-1">
+                  <Button onClick={handleApply} disabled={applyLoading}>
+                    {applyLoading ? 'Applying…' : 'Apply to profile'}
+                  </Button>
+                  <Button variant="ghost" onClick={() => setParsed(null)}>
+                    Discard
+                  </Button>
+                </div>
+              </div>
+            )}
           </Card>
         </div>
       </div>

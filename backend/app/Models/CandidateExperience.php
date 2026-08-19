@@ -5,24 +5,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CandidateDocument extends Model
+class CandidateExperience extends Model
 {
+    protected $table = 'candidate_experiences';
+
     protected $fillable = [
         'candidate_id',
-        'type',
-        'file_name',
-        'file_path',
-        'mime_type',
-        'file_size',
-        'is_primary',
-        'parse_status',
-        'parsed_data',
+        'company_name',
+        'position',
+        'description',
+        'start_date',
+        'end_date',
+        'is_current',
     ];
 
     protected function casts(): array
     {
         return [
-            'parsed_data' => 'array',
+            'start_date' => 'date',
+            'end_date' => 'date',
+            'is_current' => 'boolean',
         ];
     }
 

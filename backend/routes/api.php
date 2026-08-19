@@ -76,6 +76,8 @@ Route::prefix('v1')->group(function () {
             Route::put('/me/profile', [CandidateProfileController::class, 'update']);
             Route::post('/me/cv', [CandidateProfileController::class, 'uploadCv']);
             Route::get('/me/cv', [CandidateProfileController::class, 'downloadOwnCv']);
+            Route::post('/me/cv/parse', [CandidateProfileController::class, 'parseCv']);
+            Route::post('/me/cv/apply', [CandidateProfileController::class, 'applyCv']);
         });
     });
 });

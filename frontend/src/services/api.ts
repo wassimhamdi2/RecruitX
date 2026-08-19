@@ -128,6 +128,16 @@ export const getMyProfile = () => api.get<{ data: CandidateProfile }>('/me/profi
 export const updateMyProfile = (data: Partial<CandidateProfile>) =>
   api.put<{ data: CandidateProfile }>('/me/profile', data)
 
+export interface ParsedCv {
+  name: string | null
+  email: string | null
+  phone: string | null
+  address: string | null
+  skills: string[]
+  education: { institution: string | null; degree: string | null; field_of_study: string | null; start_date: string | null; end_date: string | null }[]
+  experiences: { company_name: string | null; position: string | null; start_date: string | null; end_date: string | null; is_current: boolean }[]
+}
+
 export const uploadCv = (file: File) => {
   const form = new FormData()
   form.append('cv', file)
@@ -135,6 +145,12 @@ export const uploadCv = (file: File) => {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
 }
+
+export const parseCv = () => api.post<{ data: { parse_status: string; parsed: ParsedCv } }>('/me/cv/parse')
+export const applyParsedCv = () =>
+  api.post<{ data: { parse_status: string; skills_added: number; educations_added: number; experiences_added: number } }>(
+    '/me/cv/apply',
+  )
 
 const downloadBlob = (url: string, filename: string) => {
   const link = document.createElement('a')

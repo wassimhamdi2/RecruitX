@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -53,5 +54,21 @@ class Candidate extends Model
     public function cv(): HasOne
     {
         return $this->hasOne(CandidateDocument::class)->where('type', 'cv');
+    }
+
+    public function skills(): BelongsToMany
+    {
+        return $this->belongsToMany(Skill::class, 'candidate_skills')
+            ->withPivot('level', 'years_of_experience');
+    }
+
+    public function educations(): HasMany
+    {
+        return $this->hasMany(CandidateEducation::class);
+    }
+
+    public function experiences(): HasMany
+    {
+        return $this->hasMany(CandidateExperience::class);
     }
 }
