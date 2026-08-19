@@ -1,0 +1,14 @@
+node_modules/
+vendor/
+.env
+.DS_Store
+*.log
+/dist
+/storage/*.key
+/storage/pail/
+public/build/
+public/hot
+/.phpunit.result.cache
+.phpunit.cache
+.idea/
+.vscode/
