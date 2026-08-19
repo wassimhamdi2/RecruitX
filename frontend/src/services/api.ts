@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useAuth } from '../store/auth'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api/v1',
@@ -6,7 +7,7 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('recruitx-token')
+  const token = useAuth.getState().token
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }

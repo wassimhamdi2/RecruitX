@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\JobOfferController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    Route::get('/login', fn () => response()->json(['message' => 'Unauthenticated.'], 401))->name('login');
+
     Route::prefix('auth')->group(function () {
         Route::post('/register', [AuthController::class, 'register']);
         Route::post('/login', [AuthController::class, 'login']);
