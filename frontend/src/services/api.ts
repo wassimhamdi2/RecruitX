@@ -182,6 +182,19 @@ export const createEvaluation = (
 export const recruiterEvaluations = (params?: Record<string, string>) =>
   api.get<{ data: Evaluation[] }>('/recruiter/evaluations', { params })
 export const getEvaluation = (id: number) => api.get<{ data: Evaluation }>(`/evaluations/${id}`)
+export interface AppNotification {
+  id: string
+  type: string
+  data: { message?: string; job_title?: string; application_id?: number; interview_id?: number }
+  read_at: string | null
+  created_at: string
+}
+
+export const myNotifications = () => api.get<{ data: AppNotification[] }>('/me/notifications')
+export const unreadNotificationCount = () => api.get<{ count: number }>('/me/notifications/unread-count')
+export const readNotification = (id: string) => api.patch(`/me/notifications/${id}/read`)
+export const readAllNotifications = () => api.post('/me/notifications/read-all')
+
 export const evaluationCriteria = () => api.get<{ data: EvaluationCriterion[] }>('/evaluation-criteria')
 
 export const RECOMMENDATIONS = ['strong_yes', 'yes', 'maybe', 'no', 'strong_no'] as const

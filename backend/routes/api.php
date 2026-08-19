@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CandidateProfileController;
 use App\Http\Controllers\Api\EvaluationController;
 use App\Http\Controllers\Api\InterviewController;
 use App\Http\Controllers\Api\JobOfferController;
+use App\Http\Controllers\Api\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -38,6 +39,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/recruiter/evaluations', [EvaluationController::class, 'index'])->middleware('permission:evaluations.view');
         Route::get('/evaluations/{evaluation}', [EvaluationController::class, 'show'])->middleware('permission:evaluations.view');
         Route::get('/evaluation-criteria', [EvaluationController::class, 'criteria'])->middleware('permission:evaluations.view');
+
+        Route::get('/me/notifications', [NotificationController::class, 'index']);
+        Route::get('/me/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::patch('/me/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+        Route::post('/me/notifications/read-all', [NotificationController::class, 'markAllRead']);
 
         Route::middleware('role:candidate')->group(function () {
             Route::get('/me/profile', [CandidateProfileController::class, 'show']);

@@ -9,6 +9,8 @@ use App\Http\Resources\ApplicationResource;
 use App\Models\Application;
 use App\Models\ApplicationStatusHistory;
 use App\Models\JobOffer;
+use App\Notifications\ApplicationStatusChanged;
+use App\Notifications\NewApplicationReceived;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -68,6 +70,8 @@ class ApplicationController extends Controller
             'changed_by' => $request->user()->id,
         ]);
 
+        $job->createdBy?->notify(new NewApplicationReceived($application));
+
         return (new ApplicationResource($application->load('jobOffer.company')))
             ->response()
             ->setStatusCode(201);
@@ -120,6 +124,8 @@ class ApplicationController extends Controller
             'changed_by' => $request->user()->id,
             'comment' => $data['comment'] ?? null,
         ]);
+
+        $application->candidate->user->notify(new ApplicationStatusChanged($application->load('jobOffer'), $to));
 
         return new ApplicationResource($application->load('candidate.cv', 'jobOffer.company'));
     }

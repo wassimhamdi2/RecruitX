@@ -9,6 +9,7 @@ use App\Http\Resources\InterviewResource;
 use App\Models\Application;
 use App\Models\Interview;
 use App\Models\InterviewParticipant;
+use App\Notifications\InterviewScheduled;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -63,6 +64,8 @@ class InterviewController extends Controller
                 'user_id' => $userId,
             ], ['role' => 'interviewer']);
         }
+
+        $application->candidate->user->notify(new InterviewScheduled($interview->load('application.jobOffer')));
 
         return (new InterviewResource($interview->load('application.candidate', 'application.jobOffer.company', 'participants.user')))
             ->response()

@@ -51,6 +51,11 @@ class JobOffer extends Model
         return $this->belongsTo(Company::class);
     }
 
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     public function skills(): BelongsToMany
     {
         return $this->belongsToMany(Skill::class, 'job_offer_skills')
