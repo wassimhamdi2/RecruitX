@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ApplicationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CandidateProfileController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EvaluationController;
 use App\Http\Controllers\Api\InterviewController;
 use App\Http\Controllers\Api\JobOfferController;
@@ -38,6 +39,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/applications/{application}/interviews/{interview}/evaluation', [EvaluationController::class, 'store'])->middleware('permission:evaluations.create');
         Route::get('/recruiter/evaluations', [EvaluationController::class, 'index'])->middleware('permission:evaluations.view');
         Route::get('/evaluations/{evaluation}', [EvaluationController::class, 'show'])->middleware('permission:evaluations.view');
+
+        Route::get('/staff/dashboard', [DashboardController::class, 'index'])->middleware('permission:reports.view');
         Route::get('/evaluation-criteria', [EvaluationController::class, 'criteria'])->middleware('permission:evaluations.view');
 
         Route::get('/me/notifications', [NotificationController::class, 'index']);

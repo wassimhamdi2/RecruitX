@@ -195,6 +195,23 @@ export const unreadNotificationCount = () => api.get<{ count: number }>('/me/not
 export const readNotification = (id: string) => api.patch(`/me/notifications/${id}/read`)
 export const readAllNotifications = () => api.post('/me/notifications/read-all')
 
+export interface StaffDashboard {
+  totals: {
+    jobs: number
+    published_jobs: number
+    applications: number
+    interviews: number
+    completed_interviews: number
+    evaluations: number
+    avg_evaluation_score: number | null
+  }
+  applications_by_status: Record<string, number>
+  applications_last_14_days: { date: string; count: number }[]
+  top_jobs: { id: number; title: string; slug: string; applications_count: number }[]
+}
+
+export const staffDashboard = () => api.get<{ data: StaffDashboard }>('/staff/dashboard')
+
 export const evaluationCriteria = () => api.get<{ data: EvaluationCriterion[] }>('/evaluation-criteria')
 
 export const RECOMMENDATIONS = ['strong_yes', 'yes', 'maybe', 'no', 'strong_no'] as const
