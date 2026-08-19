@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ApplicationController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CandidateProfileController;
 use App\Http\Controllers\Api\JobOfferController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,5 +23,13 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/recruiter/applications', [ApplicationController::class, 'recruiterIndex'])->middleware('permission:applications.view');
         Route::patch('/applications/{application}/status', [ApplicationController::class, 'updateStatus'])->middleware('permission:applications.update');
+        Route::get('/applications/{application}/cv', [ApplicationController::class, 'applicationCv'])->middleware('permission:applications.view');
+
+        Route::middleware('role:candidate')->group(function () {
+            Route::get('/me/profile', [CandidateProfileController::class, 'show']);
+            Route::put('/me/profile', [CandidateProfileController::class, 'update']);
+            Route::post('/me/cv', [CandidateProfileController::class, 'uploadCv']);
+            Route::get('/me/cv', [CandidateProfileController::class, 'downloadOwnCv']);
+        });
     });
 });

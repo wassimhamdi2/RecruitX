@@ -6,6 +6,7 @@ import Jobs from '../pages/Jobs'
 import JobDetail from '../pages/JobDetail'
 import Login from '../pages/Login'
 import MyApplications from '../pages/MyApplications'
+import Profile from '../pages/Profile'
 import RecruiterApplications from '../pages/RecruiterApplications'
 import Register from '../pages/Register'
 
@@ -47,6 +48,14 @@ export default function AppRouter() {
         element={
           <ProtectedRoute>
             <MyApplications />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            {!isStaff ? <Profile /> : <Navigate to="/" replace />}
           </ProtectedRoute>
         }
       />

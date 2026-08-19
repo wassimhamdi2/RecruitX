@@ -1,9 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { changeApplicationStatus, recruiterApplications } from '../services/api'
+import { changeApplicationStatus, downloadApplicationCv, recruiterApplications } from '../services/api'
 import type { Application } from '../services/api'
 import AppLayout from '../components/AppLayout'
-import { Card, Select, StatusBadge, StatusSelect } from '../components/ui'
+import { Button, Card, Select, StatusBadge, StatusSelect } from '../components/ui'
 
 export default function RecruiterApplications() {
   const [statusFilter, setStatusFilter] = useState('')
@@ -54,6 +54,11 @@ export default function RecruiterApplications() {
               <div className="flex items-center gap-3">
                 <StatusBadge status={app.status} />
                 <StatusSelect exclude={[app.status]} onMove={(s) => changeStatus(app, s)} />
+                {app.candidate?.has_cv && (
+                  <Button variant="ghost" onClick={() => downloadApplicationCv(app.id)}>
+                    View CV
+                  </Button>
+                )}
               </div>
             </Card>
           ))}

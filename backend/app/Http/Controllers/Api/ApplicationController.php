@@ -12,8 +12,10 @@ use App\Models\JobOffer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ApplicationController extends Controller
 {
@@ -84,7 +86,7 @@ class ApplicationController extends Controller
     public function recruiterIndex(Request $request): AnonymousResourceCollection
     {
         $applications = Application::query()
-            ->with('candidate', 'jobOffer.company')
+            ->with('candidate.cv', 'jobOffer.company')
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->when($request->job_id, fn ($q, $id) => $q->where('job_offer_id', $id))
             ->latest()
@@ -119,6 +121,15 @@ class ApplicationController extends Controller
             'comment' => $data['comment'] ?? null,
         ]);
 
-        return new ApplicationResource($application->load('candidate', 'jobOffer.company'));
+        return new ApplicationResource($application->load('candidate.cv', 'jobOffer.company'));
+    }
+
+    public function applicationCv(Application $application): StreamedResponse
+    {
+        $cv = $application->candidate?->cv;
+
+        abort_unless($cv, 404);
+
+        return Storage::disk('local')->download($cv->file_path, $cv->file_name);
     }
 }
