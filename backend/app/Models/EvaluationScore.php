@@ -7,10 +7,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EvaluationScore extends Model
 {
+    public $timestamps = false;
+
     protected $fillable = ['evaluation_id', 'criterion_id', 'score', 'comment'];
 
     public function evaluation(): BelongsTo
     {
         return $this->belongsTo(Evaluation::class);
+    }
+
+    public function criterion(): BelongsTo
+    {
+        return $this->belongsTo(EvaluationCriterion::class, 'criterion_id');
     }
 }

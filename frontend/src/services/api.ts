@@ -72,6 +72,7 @@ export interface CandidateProfile {
 
 export interface Interview {
   id: number
+  application_id: number
   type: string
   status: string
   scheduled_at: string
@@ -148,6 +149,42 @@ export const updateInterview = (
 ) => api.patch<{ data: Interview }>(`/interviews/${id}`, input)
 
 export const INTERVIEW_TYPES = ['phone', 'video', 'onsite', 'technical', 'hr', 'final'] as const
+
+export interface Evaluation {
+  id: number
+  overall_score: string | null
+  recommendation: string | null
+  comments: string | null
+  created_at: string
+  candidate?: { id: number; name: string } | null
+  job?: { title: string; company: string | null } | null
+  interview?: { id: number; type: string; scheduled_at: string; status: string } | null
+  evaluator?: string | null
+  scores?: { criterion: string; max_score: number; score: number; comment: string | null }[]
+}
+
+export interface EvaluationCriterion {
+  id: number
+  name: string
+  max_score: number
+  weight: number
+}
+
+export const createEvaluation = (
+  applicationId: number,
+  interviewId: number,
+  input: {
+    recommendation: string
+    comments?: string
+    scores: { criterion_id: number; score: number; comment?: string }[]
+  },
+) => api.post<{ data: Evaluation }>(`/applications/${applicationId}/interviews/${interviewId}/evaluation`, input)
+export const recruiterEvaluations = (params?: Record<string, string>) =>
+  api.get<{ data: Evaluation[] }>('/recruiter/evaluations', { params })
+export const getEvaluation = (id: number) => api.get<{ data: Evaluation }>(`/evaluations/${id}`)
+export const evaluationCriteria = () => api.get<{ data: EvaluationCriterion[] }>('/evaluation-criteria')
+
+export const RECOMMENDATIONS = ['strong_yes', 'yes', 'maybe', 'no', 'strong_no'] as const
 
 export const APPLICATION_STATUSES = [
   'applied',

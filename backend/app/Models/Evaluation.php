@@ -31,6 +31,16 @@ class Evaluation extends Model
         return $this->belongsTo(Application::class);
     }
 
+    public function interview(): BelongsTo
+    {
+        return $this->belongsTo(Interview::class);
+    }
+
+    public function evaluator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'evaluator_id');
+    }
+
     public function scores(): HasMany
     {
         return $this->hasMany(EvaluationScore::class);

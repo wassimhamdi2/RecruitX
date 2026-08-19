@@ -21,6 +21,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     { label: 'Profile', to: '/profile', show: !isStaff },
     { label: 'Applications', to: '/recruiter/applications', show: isStaff },
     { label: 'Interviews', to: '/recruiter/interviews', show: isStaff },
+    { label: 'Evaluations', to: '/recruiter/evaluations', show: isStaff },
   ].filter((n) => n.show)
 
   return (

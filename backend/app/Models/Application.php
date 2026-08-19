@@ -46,4 +46,9 @@ class Application extends Model
     {
         return $this->hasMany(Interview::class);
     }
+
+    public function evaluations(): HasMany
+    {
+        return $this->hasMany(Evaluation::class);
+    }
 }

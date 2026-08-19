@@ -40,4 +40,9 @@ class Interview extends Model
     {
         return $this->hasMany(InterviewParticipant::class);
     }
+
+    public function evaluations(): HasMany
+    {
+        return $this->hasMany(Evaluation::class);
+    }
 }

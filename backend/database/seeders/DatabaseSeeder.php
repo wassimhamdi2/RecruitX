@@ -7,6 +7,7 @@ use App\Enums\JobStatus;
 use App\Enums\WorkMode;
 use App\Models\Candidate;
 use App\Models\Company;
+use App\Models\EvaluationCriterion;
 use App\Models\JobOffer;
 use App\Models\Skill;
 use App\Models\User;
@@ -73,6 +74,17 @@ class DatabaseSeeder extends Seeder
 
         foreach ($skills as $skill) {
             Skill::firstOrCreate(['name' => $skill['name']], $skill);
+        }
+
+        $criteria = [
+            ['name' => 'Technical Skills', 'description' => 'Depth and relevance of technical knowledge.', 'max_score' => 10, 'weight' => 3],
+            ['name' => 'Problem Solving', 'description' => 'Approach to technical challenges.', 'max_score' => 10, 'weight' => 3],
+            ['name' => 'Communication', 'description' => 'Clarity and effectiveness of communication.', 'max_score' => 10, 'weight' => 2],
+            ['name' => 'Culture Fit', 'description' => 'Alignment with team values and ways of working.', 'max_score' => 10, 'weight' => 2],
+        ];
+
+        foreach ($criteria as $criterion) {
+            EvaluationCriterion::firstOrCreate(['name' => $criterion['name']], $criterion);
         }
 
         $techNova = Company::firstOrCreate(
