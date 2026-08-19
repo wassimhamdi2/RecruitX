@@ -330,6 +330,51 @@ export default function Profile() {
             )}
           </Card>
         </div>
+
+        {(data?.skills?.length || data?.educations?.length || data?.experiences?.length) ? (
+          <Card className="mt-6">
+            <h2 className="font-display text-lg font-semibold">Applied from CV</h2>
+            {data?.skills?.length ? (
+              <div className="mt-3">
+                <p className="text-sm text-foreground/60">Skills</p>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {data.skills.map((s) => (
+                    <span key={s.id} className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                      {s.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {data?.educations?.length ? (
+              <div className="mt-4">
+                <p className="text-sm text-foreground/60">Education</p>
+                <ul className="mt-1 space-y-1 text-sm text-foreground/80">
+                  {data.educations.map((e) => (
+                    <li key={e.id}>
+                      {e.institution}
+                      {e.degree ? ` — ${e.degree}` : ''}
+                      {e.start_date ? ` (${e.start_date.slice(0, 4)}${e.end_date ? `–${e.end_date.slice(0, 4)}` : ''})` : ''}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {data?.experiences?.length ? (
+              <div className="mt-4">
+                <p className="text-sm text-foreground/60">Experience</p>
+                <ul className="mt-1 space-y-1 text-sm text-foreground/80">
+                  {data.experiences.map((x) => (
+                    <li key={x.id}>
+                      {x.position} at {x.company_name}
+                      {x.start_date ? ` (${x.start_date.slice(0, 4)}${x.end_date ? `–${x.end_date.slice(0, 4)}` : x.is_current ? '–present' : ''})` : ''}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </Card>
+        ) : null}
       </div>
     </AppLayout>
   )

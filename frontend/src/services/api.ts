@@ -57,6 +57,24 @@ export interface Application {
   }
 }
 
+export interface CandidateEducation {
+  id: number
+  institution: string
+  degree: string | null
+  field_of_study: string | null
+  start_date: string | null
+  end_date: string | null
+}
+
+export interface CandidateExperience {
+  id: number
+  company_name: string
+  position: string
+  start_date: string | null
+  end_date: string | null
+  is_current: boolean
+}
+
 export interface CandidateProfile {
   id: number
   first_name: string
@@ -74,6 +92,9 @@ export interface CandidateProfile {
   availability: string | null
   expected_salary: string | null
   has_cv: boolean
+  skills?: { id: number; name: string }[]
+  educations?: CandidateEducation[]
+  experiences?: CandidateExperience[]
 }
 
 export interface Interview {

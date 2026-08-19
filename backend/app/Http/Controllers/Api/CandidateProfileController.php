@@ -21,6 +21,7 @@ class CandidateProfileController extends Controller
         abort_unless($candidate = $request->user()->candidate, 403);
 
         $candidate->has_cv = (bool) $candidate->cv;
+        $candidate->load('skills:id,name', 'educations', 'experiences');
 
         return response()->json(['data' => $candidate]);
     }

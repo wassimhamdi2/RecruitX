@@ -6,12 +6,19 @@ GET  /health -> {status: ok}
 
 import io
 import re
+import unicodedata
 
 import fitz
 import docx
 from fastapi import FastAPI, File, HTTPException, UploadFile
 
 app = FastAPI(title="RecruitX CV Parser")
+
+
+def norm(s: str) -> str:
+    """Lowercase + strip accents, so French headers match English matcher rules."""
+    s = unicodedata.normalize("NFD", s)
+    return "".join(c for c in s if not unicodedata.combining(c)).lower()
 
 SKILLS = [
     "Laravel", "PHP", "React", "TypeScript", "Vue", "Angular", "Java", "Spring Boot",
@@ -27,10 +34,11 @@ SKILLS.sort(key=len, reverse=True)
 
 SECTION_HEADERS = {
     "experience": [
-        "work experience", "professional experience", "employment", "experience", "career history",
-        "expérience professionnelle", "expérience", "parcours professionnel", "emploi",
+        "work experience", "professional experience", "academic experience", "employment",
+        "experience", "career history", "employment history",
+        "expérience professionnelle", "expérience", "expériences académiques", "parcours professionnel", "emploi",
     ],
-    "education": ["education", "academic", "qualifications", "formation", "études", "diplômes", "diplome"],
+    "education": ["education", "qualifications", "formation", "études", "diplômes", "diplome", "éducation"],
     "skills": ["technical skills", "skills", "technologies", "tools", "compétences", "competences"],
 }
 
@@ -43,7 +51,7 @@ PHONE_RE = re.compile(
 )
 YEAR_RE = re.compile(r"(?:19|20)\d{2}")
 DATE_RANGE_RE = re.compile(
-    r"((?:19|20)\d{2}(?:-\d{1,2})?)\s*(?:-|–|to|–)\s*((?:19|20)\d{2}(?:-\d{1,2})?|present|current|now)",
+    r"((?:[A-Za-z]+ )?(?:19|20)\d{2}(?:-\d{1,2})?)\s*(?:-|–|to)\s*((?:[A-Za-z]+ )?(?:19|20)\d{2}(?:-\d{1,2})?|present|current|now)",
     re.IGNORECASE,
 )
 
@@ -68,12 +76,15 @@ def sections(text: str) -> dict[str, str]:
     lines = text.splitlines()
     index = {}
     for i, line in enumerate(lines):
+        ln = norm(line.strip())
+        if not ln:
+            continue
         for key, headers in SECTION_HEADERS.items():
-            if line.strip().lower() in headers and key not in index:
+            if key not in index and any(ln.startswith(norm(h)) for h in headers):
                 index[key] = i
-    order = {key: i for i, (key, _) in enumerate(sorted(index.items(), key=lambda kv: kv[1]))}
-    result = {}
+                break
     sorted_keys = sorted(index, key=index.get)
+    result = {}
     for n, key in enumerate(sorted_keys):
         end = index[sorted_keys[n + 1]] if n + 1 < len(sorted_keys) else len(lines)
         result[key] = "\n".join(lines[index[key] + 1:end])
@@ -116,26 +127,35 @@ def parse_date(value: str) -> str | None:
 
 def extract_education(sec: str) -> list[dict]:
     result = []
-    for line in sec.splitlines():
-        line = line.strip()
-        if not line or not YEAR_RE.search(line):
+    lines = [l.strip() for l in sec.splitlines() if l.strip()]
+    for i, line in enumerate(lines):
+        if not YEAR_RE.search(line):
             continue
         start_year = YEAR_RE.search(line).group(0)
-        end_m = re.search(r"(?:19|20)\d{2}\s*[-–]\s*((?:19|20)\d{2})", line)
-        end_year = end_m.group(1) if end_m else None
+        end_m = DATE_RANGE_RE.search(line)
+        end_year = parse_date(end_m.group(2)) if end_m else None
         rest = line[end_m.end():].lstrip(" ,-–").strip() if end_m else line[YEAR_RE.search(line).end():].lstrip(" ,-–").strip()
-        if not rest:
-            continue
-        parts = re.split(r"\s*(?:,|[-–]| at )\s*", rest)
-        institution = parts[-1].strip()
-        degree = ", ".join(p.strip() for p in parts[:-1]).strip() or None
-        result.append({
-            "institution": institution,
-            "degree": degree,
-            "field_of_study": None,
-            "start_date": start_year,
-            "end_date": end_year,
-        })
+        institution, degree = None, None
+        if rest:
+            parts = re.split(r"\s*(?:,|[-–]| at )\s*", rest)
+            institution = parts[-1].strip()
+            degree = ", ".join(p.strip() for p in parts[:-1]).strip() or None
+        else:
+            nxt = lines[i + 1].lstrip("•- \t").strip() if i + 1 < len(lines) else ""
+            if nxt and not re.match(r"^[\w.\-']+,\s*[\w.\-']+$", nxt) and len(nxt) < 80:
+                institution = nxt
+            prev = lines[i - 1] if i > 0 else None
+            if prev and not YEAR_RE.search(prev) and not re.match(r"^[\w.\-']+,\s*[\w.\-']+$", prev) \
+                    and not prev.startswith("•") and len(prev) < 80 and not norm(prev).startswith("langu"):
+                degree = prev
+        if institution:
+            result.append({
+                "institution": institution,
+                "degree": degree,
+                "field_of_study": None,
+                "start_date": start_year,
+                "end_date": end_year,
+            })
     return result[:8]
 
 
@@ -154,10 +174,11 @@ def extract_experience(sec: str) -> list[dict]:
             position = parts[0].strip() or None
             company = parts[1].strip() if len(parts) > 1 else None
         else:
-            if i + 1 < len(lines):
-                position = lines[i + 1]
-            if i + 2 < len(lines):
-                company = lines[i + 2]
+            # French CVs put the job title ABOVE the date line, company below.
+            prev = lines[i - 1] if i > 0 else None
+            if prev and not norm(prev).startswith("mots-cl") and ":" not in prev and len(prev) < 80:
+                position = prev
+            company = lines[i + 1] if i + 1 < len(lines) else None
         result.append({
             "company_name": company,
             "position": position,
