@@ -1,1 +1,49 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@300;400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Open Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+
+  --color-primary: #0369a1;
+  --color-primary-dark: #075985;
+  --color-secondary: #0ea5e9;
+  --color-accent: #16a34a;
+  --color-background: #f0f9ff;
+  --color-foreground: #0c4a6e;
+  --color-muted: #e7eff5;
+  --color-line: #bae6fd;
+  --color-destructive: #dc2626;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 85% -10%, rgba(14, 165, 233, 0.18), transparent 60%),
+    radial-gradient(900px 500px at -10% 15%, rgba(3, 105, 161, 0.14), transparent 55%),
+    var(--color-background);
+  color: var(--color-foreground);
+}
+
+button:not(:disabled),
+select:not(:disabled),
+input[type='submit'] {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

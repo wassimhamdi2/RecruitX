@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import { useAuth } from '../store/auth'
 import type { AuthResponse } from '../types'
+import { Button, Card, Input, Label } from '../components/ui'
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -35,48 +36,36 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-sm space-y-4 rounded-lg bg-white p-8 shadow"
-      >
-        <h1 className="text-2xl font-semibold">Sign in to RecruitX</h1>
+    <div className="flex min-h-screen items-center justify-center px-6">
+      <Card className="w-full max-w-sm">
+        <h1 className="font-display text-2xl font-semibold">Sign in to RecruitX</h1>
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
+          <div>
+            <Label>Email</Label>
+            <Input type="email" {...register('email')} />
+            {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>}
+          </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium">Email</label>
-          <input
-            type="email"
-            {...register('email')}
-            className="w-full rounded border px-3 py-2"
-          />
-          {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
-        </div>
+          <div>
+            <Label>Password</Label>
+            <Input type="password" {...register('password')} />
+            {errors.password && (
+              <p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
+            )}
+          </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium">Password</label>
-          <input
-            type="password"
-            {...register('password')}
-            className="w-full rounded border px-3 py-2"
-          />
-          {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
-        </div>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? 'Signing in…' : 'Sign in'}
+          </Button>
+        </form>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-        >
-          {isSubmitting ? 'Signing in...' : 'Sign in'}
-        </button>
-
-        <p className="text-sm text-slate-600">
+        <p className="mt-4 text-sm text-foreground/70">
           No account?{' '}
-          <Link to="/register" className="text-blue-600 hover:underline">
+          <Link to="/register" className="font-medium text-primary hover:underline">
             Register
           </Link>
         </p>
-      </form>
+      </Card>
     </div>
   )
 }

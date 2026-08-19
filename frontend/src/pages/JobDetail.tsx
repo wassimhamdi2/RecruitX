@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { applyToJob, getJob } from '../services/api'
+import AppLayout from '../components/AppLayout'
+import { Button, Card } from '../components/ui'
 
 export default function JobDetail() {
   const { slug } = useParams()
@@ -23,48 +25,47 @@ export default function JobDetail() {
     }
   }
 
-  if (isLoading) return <p className="px-8 py-10 text-slate-500">Loading...</p>
-  if (!data) return <p className="px-8 py-10 text-slate-500">Job not found.</p>
+  if (isLoading) return <AppLayout><p className="py-10 text-foreground/60">Loading…</p></AppLayout>
+
+  if (!data) return <AppLayout><p className="py-10 text-foreground/60">Job not found.</p></AppLayout>
 
   return (
-    <div className="mx-auto max-w-3xl px-8 py-10">
-      <h1 className="text-2xl font-semibold">{data.title}</h1>
-      <p className="mt-1 text-slate-600">
-        {data.company} · {data.location} · {data.work_mode} · {data.employment_type}
-      </p>
-      <p className="mt-1 text-slate-600">
-        {data.salary_min && data.salary_max
-          ? `${data.salary_min} - ${data.salary_max} ${data.currency}`
-          : ''}
-      </p>
-
-      <div className="mt-6 whitespace-pre-line rounded-lg border bg-white p-5 shadow-sm">
-        <p>{data.description}</p>
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        {data.skills?.map((s) => (
-          <span key={s.name} className="rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700">
-            {s.name} {s.is_required ? '(required)' : ''}
-          </span>
-        ))}
-      </div>
-
-      <div className="mt-8">
-        {applied ? (
-          <span className="rounded bg-green-100 px-4 py-2 text-sm text-green-700">
-            Applied successfully
-          </span>
-        ) : (
-          <button
-            onClick={handleApply}
-            className="rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"
-          >
-            Apply now
-          </button>
+    <AppLayout>
+      <div className="max-w-3xl py-10">
+        <h1 className="font-display text-3xl font-semibold">{data.title}</h1>
+        <p className="mt-2 text-sm text-foreground/70">
+          {data.company} · {data.location} · {data.work_mode} · {data.employment_type.replace('_', ' ')}
+        </p>
+        {data.salary_min && data.salary_max && (
+          <p className="mt-1 text-sm font-medium text-accent">
+            {data.salary_min} – {data.salary_max} {data.currency}
+          </p>
         )}
-        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+
+        <div className="mt-6 flex flex-wrap gap-2">
+          {data.skills?.map((s) => (
+            <span
+              key={s.name}
+              className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+            >
+              {s.name} {s.is_required ? '(required)' : ''}
+            </span>
+          ))}
+        </div>
+
+        <Card className="mt-6">
+          <div className="whitespace-pre-line text-sm leading-relaxed">{data.description}</div>
+        </Card>
+
+        <div className="mt-8">
+          {applied ? (
+            <Button disabled>Applied successfully</Button>
+          ) : (
+            <Button onClick={handleApply}>Apply now</Button>
+          )}
+          {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+        </div>
       </div>
-    </div>
+    </AppLayout>
   )
 }

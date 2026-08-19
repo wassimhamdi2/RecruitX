@@ -1,69 +1,64 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../store/auth'
+import AppLayout from '../components/AppLayout'
 
 export default function Dashboard() {
   const user = useAuth((s) => s.user)
-  const logout = useAuth((s) => s.logout)
   const navigate = useNavigate()
   const isStaff = user?.roles.some((r) => r === 'recruiter' || r === 'admin')
 
-  const handleLogout = async () => {
-    await logout()
-    navigate('/login')
-  }
+  const cards = isStaff
+    ? [
+        {
+          title: 'Applications',
+          subtitle: 'Review candidates and move them through the pipeline',
+          to: '/recruiter/applications',
+        },
+        { title: 'Browse Jobs', subtitle: 'View published job offers', to: '/jobs' },
+      ]
+    : [
+        {
+          title: 'Browse Jobs',
+          subtitle: 'Search and apply to open positions',
+          to: '/jobs',
+        },
+        {
+          title: 'My Applications',
+          subtitle: 'Track the status of your applications',
+          to: '/applications',
+        },
+      ]
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <header className="flex items-center justify-between border-b bg-white px-8 py-4">
-        <h1 className="text-lg font-semibold">RecruitX</h1>
-        <nav className="flex items-center gap-4 text-sm">
-          <button onClick={() => navigate('/jobs')} className="hover:underline">
-            Jobs
-          </button>
-          <button onClick={() => navigate('/applications')} className="hover:underline">
-            My Applications
-          </button>
-          {isStaff && (
-            <button onClick={() => navigate('/recruiter/applications')} className="hover:underline">
-              Applications
-            </button>
-          )}
-          <button onClick={handleLogout} className="rounded bg-slate-200 px-3 py-1 hover:bg-slate-300">
-            Logout
-          </button>
-        </nav>
-      </header>
-
-      <main className="mx-auto max-w-3xl space-y-6 px-8 py-10">
-        <div className="rounded-lg bg-white p-6 shadow">
-          <h2 className="text-xl font-semibold">Welcome, {user?.name}</h2>
-          <p className="text-slate-600">{user?.email}</p>
-          <div className="mt-3 flex gap-2">
+    <AppLayout>
+      <div className="py-10">
+        <div className="mb-8 rounded-2xl border border-white/60 bg-white/60 p-8 shadow-sm backdrop-blur-md">
+          <p className="text-sm font-medium text-primary">Welcome back</p>
+          <h1 className="font-display mt-1 text-3xl font-semibold">{user?.name}</h1>
+          <p className="mt-1 text-sm text-foreground/70">{user?.email}</p>
+          <div className="mt-4 flex gap-2">
             {user?.roles.map((role) => (
-              <span key={role} className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+              <span key={role} className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium capitalize text-primary">
                 {role}
               </span>
             ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            onClick={() => navigate('/jobs')}
-            className="rounded-lg bg-white p-6 text-left shadow hover:bg-blue-50"
-          >
-            <div className="text-2xl font-semibold text-blue-600">Browse Jobs</div>
-            <p className="mt-1 text-sm text-slate-600">Search and apply to open positions</p>
-          </button>
-          <button
-            onClick={() => navigate('/applications')}
-            className="rounded-lg bg-white p-6 text-left shadow hover:bg-blue-50"
-          >
-            <div className="text-2xl font-semibold text-blue-600">My Applications</div>
-            <p className="mt-1 text-sm text-slate-600">Track the status of your applications</p>
-          </button>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {cards.map((c) => (
+            <button
+              key={c.to}
+              type="button"
+              onClick={() => navigate(c.to)}
+              className="rounded-xl border border-white/60 bg-white/70 p-6 text-left shadow-sm backdrop-blur-md transition-colors hover:border-secondary hover:bg-white"
+            >
+              <h2 className="font-display text-xl font-semibold text-primary">{c.title}</h2>
+              <p className="mt-1 text-sm text-foreground/70">{c.subtitle}</p>
+            </button>
+          ))}
         </div>
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   )
 }

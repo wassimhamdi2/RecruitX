@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import { useAuth } from '../store/auth'
 import type { AuthResponse } from '../types'
+import { Button, Card, Input, Label } from '../components/ui'
 
 const schema = z
   .object({
@@ -45,75 +46,68 @@ export default function Register() {
     }
   }
 
-  const input =
-    'w-full rounded border px-3 py-2'
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-sm space-y-4 rounded-lg bg-white p-8 shadow"
-      >
-        <h1 className="text-2xl font-semibold">Create your account</h1>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Full name</label>
-          <input type="text" {...register('name')} className={input} />
-          {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
+    <div className="flex min-h-screen items-center justify-center px-6 py-10">
+      <Card className="w-full max-w-sm">
+        <h1 className="font-display text-2xl font-semibold">Create your account</h1>
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium">First name</label>
-            <input type="text" {...register('first_name')} className={input} />
-            {errors.first_name && (
-              <p className="mt-1 text-sm text-red-600">{errors.first_name.message}</p>
+            <Label>Full name</Label>
+            <Input type="text" {...register('name')} />
+            {errors.name && <p className="mt-1 text-sm text-destructive">{errors.name.message}</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>First name</Label>
+              <Input type="text" {...register('first_name')} />
+              {errors.first_name && (
+                <p className="mt-1 text-sm text-destructive">{errors.first_name.message}</p>
+              )}
+            </div>
+            <div>
+              <Label>Last name</Label>
+              <Input type="text" {...register('last_name')} />
+              {errors.last_name && (
+                <p className="mt-1 text-sm text-destructive">{errors.last_name.message}</p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <Label>Email</Label>
+            <Input type="email" {...register('email')} />
+            {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>}
+          </div>
+
+          <div>
+            <Label>Password</Label>
+            <Input type="password" {...register('password')} />
+            {errors.password && (
+              <p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
             )}
           </div>
+
           <div>
-            <label className="mb-1 block text-sm font-medium">Last name</label>
-            <input type="text" {...register('last_name')} className={input} />
-            {errors.last_name && (
-              <p className="mt-1 text-sm text-red-600">{errors.last_name.message}</p>
+            <Label>Confirm password</Label>
+            <Input type="password" {...register('password_confirmation')} />
+            {errors.password_confirmation && (
+              <p className="mt-1 text-sm text-destructive">{errors.password_confirmation.message}</p>
             )}
           </div>
-        </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium">Email</label>
-          <input type="email" {...register('email')} className={input} />
-          {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
-        </div>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? 'Creating account…' : 'Register'}
+          </Button>
+        </form>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium">Password</label>
-          <input type="password" {...register('password')} className={input} />
-          {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Confirm password</label>
-          <input type="password" {...register('password_confirmation')} className={input} />
-          {errors.password_confirmation && (
-            <p className="mt-1 text-sm text-red-600">{errors.password_confirmation.message}</p>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-        >
-          {isSubmitting ? 'Creating account...' : 'Register'}
-        </button>
-
-        <p className="text-sm text-slate-600">
+        <p className="mt-4 text-sm text-foreground/70">
           Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 hover:underline">
+          <Link to="/login" className="font-medium text-primary hover:underline">
             Sign in
           </Link>
         </p>
-      </form>
+      </Card>
     </div>
   )
 }
