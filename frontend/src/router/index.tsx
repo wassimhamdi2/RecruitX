@@ -6,10 +6,13 @@ import Jobs from '../pages/Jobs'
 import JobDetail from '../pages/JobDetail'
 import Login from '../pages/Login'
 import MyApplications from '../pages/MyApplications'
+import RecruiterApplications from '../pages/RecruiterApplications'
 import Register from '../pages/Register'
 
 export default function AppRouter() {
   const token = useAuth((s) => s.token)
+  const user = useAuth((s) => s.user)
+  const isStaff = user?.roles.some((r) => r === 'recruiter' || r === 'admin')
 
   return (
     <Routes>
@@ -44,6 +47,14 @@ export default function AppRouter() {
         element={
           <ProtectedRoute>
             <MyApplications />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruiter/applications"
+        element={
+          <ProtectedRoute>
+            {isStaff ? <RecruiterApplications /> : <Navigate to="/" replace />}
           </ProtectedRoute>
         }
       />

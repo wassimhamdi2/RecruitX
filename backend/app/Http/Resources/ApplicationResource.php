@@ -13,6 +13,10 @@ class ApplicationResource extends JsonResource
             'id' => $this->id,
             'status' => $this->status,
             'applied_at' => $this->applied_at,
+            'candidate' => $this->whenLoaded('candidate', fn () => [
+                'id' => $this->candidate->id,
+                'name' => $this->candidate->first_name.' '.$this->candidate->last_name,
+            ]),
             'job' => $this->whenLoaded('jobOffer', fn () => [
                 'id' => $this->jobOffer->id,
                 'title' => $this->jobOffer->title,

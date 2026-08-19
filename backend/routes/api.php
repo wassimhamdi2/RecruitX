@@ -19,5 +19,8 @@ Route::prefix('v1')->group(function () {
 
         Route::post('/jobs/{job}/apply', [ApplicationController::class, 'store'])->middleware('permission:applications.create');
         Route::get('/applications', [ApplicationController::class, 'index'])->middleware('permission:applications.view-own');
+
+        Route::get('/recruiter/applications', [ApplicationController::class, 'recruiterIndex'])->middleware('permission:applications.view');
+        Route::patch('/applications/{application}/status', [ApplicationController::class, 'updateStatus'])->middleware('permission:applications.update');
     });
 });

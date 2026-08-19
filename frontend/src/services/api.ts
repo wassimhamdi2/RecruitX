@@ -35,6 +35,10 @@ export interface Application {
   id: number
   status: string
   applied_at: string
+  candidate?: {
+    id: number
+    name: string
+  } | null
   job: {
     id: number
     title: string
@@ -50,5 +54,21 @@ export const listJobs = (params?: Record<string, string>) => api.get<{ data: Job
 export const getJob = (slug: string) => api.get<{ data: Job }>(`/jobs/${slug}`)
 export const applyToJob = (id: number) => api.post(`/jobs/${id}/apply`)
 export const myApplications = () => api.get<{ data: Application[] }>('/applications')
+export const recruiterApplications = (params?: Record<string, string>) =>
+  api.get<{ data: Application[] }>('/recruiter/applications', { params })
+export const changeApplicationStatus = (id: number, status: string, comment?: string) =>
+  api.patch<{ data: Application }>(`/applications/${id}/status`, { status, comment })
+
+export const APPLICATION_STATUSES = [
+  'applied',
+  'screening',
+  'shortlisted',
+  'interview',
+  'evaluation',
+  'offer',
+  'hired',
+  'rejected',
+  'withdrawn',
+] as const
 
 export default api

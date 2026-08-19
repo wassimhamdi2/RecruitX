@@ -5,6 +5,7 @@ export default function Dashboard() {
   const user = useAuth((s) => s.user)
   const logout = useAuth((s) => s.logout)
   const navigate = useNavigate()
+  const isStaff = user?.roles.some((r) => r === 'recruiter' || r === 'admin')
 
   const handleLogout = async () => {
     await logout()
@@ -15,13 +16,18 @@ export default function Dashboard() {
     <div className="min-h-screen bg-slate-100">
       <header className="flex items-center justify-between border-b bg-white px-8 py-4">
         <h1 className="text-lg font-semibold">RecruitX</h1>
-        <nav className="flex gap-4 text-sm">
+        <nav className="flex items-center gap-4 text-sm">
           <button onClick={() => navigate('/jobs')} className="hover:underline">
             Jobs
           </button>
           <button onClick={() => navigate('/applications')} className="hover:underline">
             My Applications
           </button>
+          {isStaff && (
+            <button onClick={() => navigate('/recruiter/applications')} className="hover:underline">
+              Applications
+            </button>
+          )}
           <button onClick={handleLogout} className="rounded bg-slate-200 px-3 py-1 hover:bg-slate-300">
             Logout
           </button>

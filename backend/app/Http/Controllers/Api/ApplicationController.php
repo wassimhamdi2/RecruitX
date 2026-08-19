@@ -12,10 +12,23 @@ use App\Models\JobOffer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class ApplicationController extends Controller
 {
+    // ponytail: transition map inline — single source of truth for the pipeline.
+    private const TRANSITIONS = [
+        ApplicationStatus::APPLIED->value => ['screening', 'rejected', 'withdrawn'],
+        ApplicationStatus::SCREENING->value => ['shortlisted', 'rejected', 'withdrawn'],
+        ApplicationStatus::SHORTLISTED->value => ['interview', 'rejected', 'withdrawn'],
+        ApplicationStatus::INTERVIEW->value => ['evaluation', 'rejected', 'withdrawn'],
+        ApplicationStatus::EVALUATION->value => ['offer', 'rejected', 'withdrawn'],
+        ApplicationStatus::OFFER->value => ['hired', 'rejected', 'withdrawn'],
+        ApplicationStatus::HIRED->value => [],
+        ApplicationStatus::REJECTED->value => [],
+        ApplicationStatus::WITHDRAWN->value => [],
+    ];
     public function store(Request $request, JobOffer $job): JsonResponse
     {
         $candidate = $request->user()->candidate;
@@ -66,5 +79,46 @@ class ApplicationController extends Controller
             : collect();
 
         return ApplicationResource::collection($applications);
+    }
+
+    public function recruiterIndex(Request $request): AnonymousResourceCollection
+    {
+        $applications = Application::query()
+            ->with('candidate', 'jobOffer.company')
+            ->when($request->status, fn ($q, $s) => $q->where('status', $s))
+            ->when($request->job_id, fn ($q, $id) => $q->where('job_offer_id', $id))
+            ->latest()
+            ->paginate($request->integer('per_page', 15));
+
+        return ApplicationResource::collection($applications);
+    }
+
+    public function updateStatus(Request $request, Application $application): ApplicationResource
+    {
+        $data = $request->validate([
+            'status' => ['required', 'string', Rule::enum(ApplicationStatus::class)],
+            'comment' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $from = $application->status->value;
+        $to = $data['status'];
+
+        if (! in_array($to, self::TRANSITIONS[$from] ?? [], true)) {
+            throw ValidationException::withMessages([
+                'status' => "Cannot move application from {$from} to {$to}.",
+            ]);
+        }
+
+        $application->update(['status' => $to]);
+
+        ApplicationStatusHistory::create([
+            'application_id' => $application->id,
+            'from_status' => $from,
+            'to_status' => $to,
+            'changed_by' => $request->user()->id,
+            'comment' => $data['comment'] ?? null,
+        ]);
+
+        return new ApplicationResource($application->load('candidate', 'jobOffer.company'));
     }
 }
