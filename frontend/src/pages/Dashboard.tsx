@@ -6,28 +6,37 @@ export default function Dashboard() {
   const user = useAuth((s) => s.user)
   const navigate = useNavigate()
   const isStaff = user?.roles.some((r) => r === 'recruiter' || r === 'admin')
+  const isAdmin = user?.roles.includes('admin')
 
-  const cards = isStaff
-    ? [
-        {
-          title: 'Applications',
-          subtitle: 'Review candidates and move them through the pipeline',
-          to: '/recruiter/applications',
-        },
-        { title: 'Browse Jobs', subtitle: 'View published job offers', to: '/jobs' },
-      ]
-    : [
-        {
-          title: 'Browse Jobs',
-          subtitle: 'Search and apply to open positions',
-          to: '/jobs',
-        },
-        {
-          title: 'My Applications',
-          subtitle: 'Track the status of your applications',
-          to: '/applications',
-        },
-      ]
+  const cards = [
+    ...(isAdmin ? [{ title: 'Admin Panel', subtitle: 'Manage users, companies and audit logs', to: '/admin' }] : []),
+    ...(isStaff
+      ? [
+          {
+            title: 'Dashboard',
+            subtitle: 'Pipeline analytics and reports',
+            to: '/recruiter/dashboard',
+          },
+          {
+            title: 'Applications',
+            subtitle: 'Review candidates and move them through the pipeline',
+            to: '/recruiter/applications',
+          },
+          { title: 'Browse Jobs', subtitle: 'View published job offers', to: '/jobs' },
+        ]
+      : [
+          {
+            title: 'Browse Jobs',
+            subtitle: 'Search and apply to open positions',
+            to: '/jobs',
+          },
+          {
+            title: 'My Applications',
+            subtitle: 'Track the status of your applications',
+            to: '/applications',
+          },
+        ]),
+  ]
 
   return (
     <AppLayout>

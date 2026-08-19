@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\ApplicationController;
+use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AdminCompanyController;
+use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\CandidateProfileController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EvaluationController;
@@ -41,6 +44,15 @@ Route::prefix('v1')->group(function () {
         Route::get('/evaluations/{evaluation}', [EvaluationController::class, 'show'])->middleware('permission:evaluations.view');
 
         Route::get('/staff/dashboard', [DashboardController::class, 'index'])->middleware('permission:reports.view');
+
+        Route::get('/admin/users', [AdminUserController::class, 'index'])->middleware('permission:users.view');
+        Route::patch('/admin/users/{user}/role', [AdminUserController::class, 'updateRole'])->middleware('permission:users.update');
+        Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy'])->middleware('permission:users.delete');
+
+        Route::get('/admin/companies', [AdminCompanyController::class, 'index'])->middleware('permission:companies.view');
+        Route::patch('/admin/companies/{company}', [AdminCompanyController::class, 'update'])->middleware('permission:companies.update');
+
+        Route::get('/admin/audit-logs', [AuditLogController::class, 'index'])->middleware('permission:audit.view');
         Route::get('/evaluation-criteria', [EvaluationController::class, 'criteria'])->middleware('permission:evaluations.view');
 
         Route::get('/me/notifications', [NotificationController::class, 'index']);

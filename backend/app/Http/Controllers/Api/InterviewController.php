@@ -10,6 +10,7 @@ use App\Models\Application;
 use App\Models\Interview;
 use App\Models\InterviewParticipant;
 use App\Notifications\InterviewScheduled;
+use App\Support\Audit;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -66,6 +67,12 @@ class InterviewController extends Controller
         }
 
         $application->candidate->user->notify(new InterviewScheduled($interview->load('application.jobOffer')));
+
+        Audit::record('interview.created', $interview, null, [
+            'application_id' => $application->id,
+            'type' => $interview->type,
+            'scheduled_at' => $interview->scheduled_at->toDateTimeString(),
+        ]);
 
         return (new InterviewResource($interview->load('application.candidate', 'application.jobOffer.company', 'participants.user')))
             ->response()
@@ -130,7 +137,15 @@ class InterviewController extends Controller
             $interview->notes = $data['notes'];
         }
 
+        $before = $interview->getOriginal();
         $interview->save();
+        Audit::record('interview.updated', $interview, [
+            'status' => $before['status'] ?? null,
+            'scheduled_at' => $before['scheduled_at'] ?? null,
+        ], [
+            'status' => $interview->status->value,
+            'scheduled_at' => $interview->scheduled_at?->toDateTimeString(),
+        ]);
 
         return new InterviewResource($interview->load('application.candidate', 'application.jobOffer.company', 'participants.user'));
     }

@@ -10,6 +10,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const logout = useAuth((s) => s.logout)
   const navigate = useNavigate()
   const isStaff = user?.roles.some((r) => r === 'recruiter' || r === 'admin')
+  const isAdmin = user?.roles.includes('admin')
 
   const handleLogout = async () => {
     await logout()
@@ -25,6 +26,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     { label: 'Applications', to: '/recruiter/applications', show: isStaff },
     { label: 'Interviews', to: '/recruiter/interviews', show: isStaff },
     { label: 'Evaluations', to: '/recruiter/evaluations', show: isStaff },
+    { label: 'Admin', to: '/admin', show: isAdmin },
   ].filter((n) => n.show)
 
   return (

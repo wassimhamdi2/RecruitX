@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Candidate;
 use App\Models\User;
+use App\Support\Audit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -32,6 +33,8 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
+        Audit::record('user.registered', $user, null, ['email' => $user->email], $user->id);
+
         return response()->json([
             'token' => $token,
             'user' => new UserResource($user->load('roles')),
@@ -46,6 +49,8 @@ class AuthController extends Controller
 
         $user = Auth::user();
         $token = $user->createToken('auth-token')->plainTextToken;
+
+        Audit::record('user.login', $user, null, ['email' => $user->email], $user->id);
 
         return response()->json([
             'token' => $token,

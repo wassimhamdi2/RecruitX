@@ -212,6 +212,25 @@ export interface StaffDashboard {
 
 export const staffDashboard = () => api.get<{ data: StaffDashboard }>('/staff/dashboard')
 
+export interface AuditLogEntry {
+  id: number
+  user: { id: number; name: string; email: string } | null
+  action: string
+  auditable_type: string
+  auditable_id: number | null
+  before: Record<string, unknown> | null
+  after: Record<string, unknown> | null
+  ip_address: string | null
+  created_at: string
+}
+
+export const adminUsers = (q = '') => api.get<{ data: { id: number; name: string; email: string; roles: string[] }[] }>('/admin/users', { params: { q } })
+export const adminUpdateUserRole = (id: number, role: string) => api.patch(`/admin/users/${id}/role`, { role })
+export const adminDeleteUser = (id: number) => api.delete(`/admin/users/${id}`)
+export const adminCompanies = () => api.get<{ data: { id: number; name: string; city: string; country: string; job_offers_count: number }[] }>('/admin/companies')
+export const adminUpdateCompany = (id: number, data: Record<string, unknown>) => api.patch(`/admin/companies/${id}`, data)
+export const adminAuditLogs = () => api.get<{ data: AuditLogEntry[] }>('/admin/audit-logs')
+
 export const evaluationCriteria = () => api.get<{ data: EvaluationCriterion[] }>('/evaluation-criteria')
 
 export const RECOMMENDATIONS = ['strong_yes', 'yes', 'maybe', 'no', 'strong_no'] as const

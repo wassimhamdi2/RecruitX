@@ -11,6 +11,7 @@ use App\Models\ApplicationStatusHistory;
 use App\Models\JobOffer;
 use App\Notifications\ApplicationStatusChanged;
 use App\Notifications\NewApplicationReceived;
+use App\Support\Audit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -126,6 +127,8 @@ class ApplicationController extends Controller
         ]);
 
         $application->candidate->user->notify(new ApplicationStatusChanged($application->load('jobOffer'), $to));
+
+        Audit::record('application.status_changed', $application, ['status' => $from], ['status' => $to]);
 
         return new ApplicationResource($application->load('candidate.cv', 'jobOffer.company'));
     }

@@ -9,6 +9,7 @@ import MyApplications from '../pages/MyApplications'
 import MyInterviews from '../pages/MyInterviews'
 import Profile from '../pages/Profile'
 import RecruiterApplications from '../pages/RecruiterApplications'
+import AdminPanel from '../pages/AdminPanel'
 import RecruiterDashboard from '../pages/RecruiterDashboard'
 import RecruiterEvaluations from '../pages/RecruiterEvaluations'
 import RecruiterInterviews from '../pages/RecruiterInterviews'
@@ -68,6 +69,14 @@ export default function AppRouter() {
         element={
           <ProtectedRoute>
             {!isStaff ? <MyInterviews /> : <Navigate to="/" replace />}
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            {user?.roles.includes('admin') ? <AdminPanel /> : <Navigate to="/" replace />}
           </ProtectedRoute>
         }
       />

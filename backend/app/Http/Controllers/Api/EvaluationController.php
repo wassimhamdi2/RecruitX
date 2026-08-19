@@ -9,6 +9,7 @@ use App\Models\Application;
 use App\Models\Evaluation;
 use App\Models\EvaluationScore;
 use App\Models\Interview;
+use App\Support\Audit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -65,6 +66,12 @@ class EvaluationController extends Controller
 
         $evaluation->update([
             'overall_score' => $weightSum > 0 ? round($total / $weightSum, 2) : round(array_sum(array_column($data['scores'], 'score')) / count($data['scores']), 2),
+        ]);
+
+        Audit::record('evaluation.created', $evaluation, null, [
+            'interview_id' => $interview->id,
+            'recommendation' => $evaluation->recommendation->value,
+            'overall_score' => $evaluation->overall_score,
         ]);
 
         return (new EvaluationResource($evaluation->load('application.candidate', 'application.jobOffer.company', 'interview', 'scores.criterion')))
