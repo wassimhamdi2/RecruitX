@@ -29,40 +29,98 @@ class RecruiterApplicationTest extends TestCase
         return $user;
     }
 
-    private function application(string $status = 'applied'): Application
+    private function jobFor(User $recruiter, string $title = 'Laravel Developer'): JobOffer
     {
-        $company = Company::create(['name' => 'Test Co']);
-        $job = JobOffer::create([
-            'company_id' => $company->id,
-            'created_by' => $this->recruiterUser()->id,
-            'title' => 'Laravel Developer',
-            'slug' => 'laravel-developer-'.uniqid(),
+        return JobOffer::create([
+            'company_id' => Company::create(['name' => 'Test Co'])->id,
+            'created_by' => $recruiter->id,
+            'title' => $title,
+            'slug' => strtolower(str_replace(' ', '-', $title)).'-'.uniqid(),
             'description' => 'Build APIs.',
             'employment_type' => 'full_time',
             'work_mode' => 'hybrid',
             'status' => 'published',
             'published_at' => now(),
         ]);
+    }
+
+    private function applicationFor(User $recruiter, string $status = 'applied'): Application
+    {
         $candidate = User::factory()->create();
         $candidate->assignRole('candidate');
-        $candidateProfile = Candidate::create([
-            'user_id' => $candidate->id,
-            'first_name' => 'Ahmed',
-            'last_name' => 'Test',
-        ]);
+        $profile = Candidate::create(['user_id' => $candidate->id, 'first_name' => 'Ahmed', 'last_name' => 'Test']);
 
-        return $candidateProfile->applications()->create([
-            'job_offer_id' => $job->id,
+        return $profile->applications()->create([
+            'job_offer_id' => $this->jobFor($recruiter)->id,
             'status' => $status,
             'applied_at' => now(),
         ]);
     }
 
+    public function test_recruiter_sees_only_own_jobs_applications(): void
+    {
+        $recruiterA = $this->recruiterUser();
+        $recruiterB = $this->recruiterUser();
+        $this->applicationFor($recruiterA);
+        $this->applicationFor($recruiterB);
+
+        $this->actingAs($recruiterA, 'sanctum')
+            ->getJson('/api/v1/recruiter/applications')
+            ->assertOk()
+            ->assertJsonCount(1, 'data');
+    }
+
+    public function test_history_shows_status_changes(): void
+    {
+        $recruiter = $this->recruiterUser();
+        $application = $this->applicationFor($recruiter);
+
+        $this->actingAs($recruiter, 'sanctum')
+            ->patchJson("/api/v1/applications/{$application->id}/status", ['status' => 'screening'])
+            ->assertOk();
+
+        $this->actingAs($recruiter, 'sanctum')
+            ->getJson("/api/v1/applications/{$application->id}/history")
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.to_status', 'screening')
+            ->assertJsonPath('data.0.changed_by', $recruiter->name);
+    }
+
+    public function test_candidate_can_see_own_application_history(): void
+    {
+        $recruiter = $this->recruiterUser();
+        $candidateUser = User::factory()->create();
+        $candidateUser->assignRole('candidate');
+        $profile = Candidate::create(['user_id' => $candidateUser->id, 'first_name' => 'T', 'last_name' => 'C']);
+        $application = $profile->applications()->create([
+            'job_offer_id' => $this->jobFor($recruiter)->id,
+            'status' => 'applied',
+            'applied_at' => now(),
+        ]);
+
+        $this->actingAs($recruiter, 'sanctum')
+            ->patchJson("/api/v1/applications/{$application->id}/status", ['status' => 'screening'])
+            ->assertOk();
+
+        $this->actingAs($candidateUser, 'sanctum')
+            ->getJson("/api/v1/applications/{$application->id}/history")
+            ->assertOk()
+            ->assertJsonCount(1, 'data');
+
+        $other = User::factory()->create();
+        $other->assignRole('candidate');
+        $this->actingAs($other, 'sanctum')
+            ->getJson("/api/v1/applications/{$application->id}/history")
+            ->assertForbidden();
+    }
+
     public function test_recruiter_can_list_all_applications(): void
     {
-        $this->application();
+        $recruiter = $this->recruiterUser();
+        $this->applicationFor($recruiter);
 
-        $this->actingAs($this->recruiterUser(), 'sanctum')
+        $this->actingAs($recruiter, 'sanctum')
             ->getJson('/api/v1/recruiter/applications')
             ->assertOk()
             ->assertJsonCount(1, 'data')
@@ -71,9 +129,10 @@ class RecruiterApplicationTest extends TestCase
 
     public function test_recruiter_can_change_status_to_valid_next_state(): void
     {
-        $app = $this->application('applied');
+        $recruiter = $this->recruiterUser();
+        $app = $this->applicationFor($recruiter);
 
-        $this->actingAs($this->recruiterUser(), 'sanctum')
+        $this->actingAs($recruiter, 'sanctum')
             ->patchJson("/api/v1/applications/{$app->id}/status", ['status' => 'screening', 'comment' => 'CV review'])
             ->assertOk()
             ->assertJsonPath('data.status', 'screening');
@@ -88,9 +147,10 @@ class RecruiterApplicationTest extends TestCase
 
     public function test_recruiter_cannot_make_illegal_transition(): void
     {
-        $app = $this->application('applied');
+        $recruiter = $this->recruiterUser();
+        $app = $this->applicationFor($recruiter);
 
-        $this->actingAs($this->recruiterUser(), 'sanctum')
+        $this->actingAs($recruiter, 'sanctum')
             ->patchJson("/api/v1/applications/{$app->id}/status", ['status' => 'hired'])
             ->assertStatus(422)
             ->assertJsonValidationErrors('status');
@@ -101,7 +161,8 @@ class RecruiterApplicationTest extends TestCase
 
     public function test_candidate_cannot_change_status(): void
     {
-        $app = $this->application('applied');
+        $recruiter = $this->recruiterUser();
+        $app = $this->applicationFor($recruiter);
         $candidate = User::factory()->create();
         $candidate->assignRole('candidate');
 
@@ -124,10 +185,11 @@ class RecruiterApplicationTest extends TestCase
 
     public function test_recruiter_list_can_filter_by_status(): void
     {
-        $this->application('applied');
-        $this->application('hired');
+        $recruiter = $this->recruiterUser();
+        $this->applicationFor($recruiter, 'applied');
+        $this->applicationFor($recruiter, 'hired');
 
-        $this->actingAs($this->recruiterUser(), 'sanctum')
+        $this->actingAs($recruiter, 'sanctum')
             ->getJson('/api/v1/recruiter/applications?status=hired')
             ->assertOk()
             ->assertJsonCount(1, 'data')

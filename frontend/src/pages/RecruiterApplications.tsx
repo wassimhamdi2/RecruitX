@@ -3,7 +3,10 @@ import { useState } from 'react'
 import { changeApplicationStatus, downloadApplicationCv, recruiterApplications } from '../services/api'
 import type { Application } from '../services/api'
 import AppLayout from '../components/AppLayout'
+import ApplicationTimeline from '../components/ApplicationTimeline'
 import { Button, Card, Select, StatusBadge, StatusSelect } from '../components/ui'
+
+const TERMINAL = ['hired', 'rejected', 'withdrawn']
 
 export default function RecruiterApplications() {
   const [statusFilter, setStatusFilter] = useState('')
@@ -44,16 +47,19 @@ export default function RecruiterApplications() {
         <div className="mt-8 space-y-3">
           {isLoading && <p className="text-foreground/60">Loading…</p>}
           {data?.map((app) => (
-            <Card key={app.id} className="flex flex-wrap items-center justify-between gap-4">
-              <div>
+            <Card key={app.id} className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex-1">
                 <p className="font-medium">{app.candidate?.name}</p>
                 <p className="text-sm text-foreground/70">
                   {app.job.title} · {app.job.company}
                 </p>
+                <ApplicationTimeline applicationId={app.id} />
               </div>
               <div className="flex items-center gap-3">
                 <StatusBadge status={app.status} />
-                <StatusSelect exclude={[app.status]} onMove={(s) => changeStatus(app, s)} />
+                {TERMINAL.includes(app.status) ? null : (
+                  <StatusSelect exclude={[app.status]} onMove={(s) => changeStatus(app, s)} />
+                )}
                 {app.candidate?.has_cv && (
                   <Button variant="ghost" onClick={() => downloadApplicationCv(app.id)}>
                     View CV

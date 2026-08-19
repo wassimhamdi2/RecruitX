@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   INTERVIEW_TYPES,
   recruiterApplications,
+  recruiterInterviewers,
   recruiterInterviews,
   scheduleInterview,
   updateInterview,
@@ -18,6 +19,7 @@ export default function RecruiterInterviews() {
   const [rescheduling, setRescheduling] = useState<number | null>(null)
   const [rescheduleTime, setRescheduleTime] = useState('')
   const [error, setError] = useState('')
+  const [interviewers, setInterviewers] = useState<number[]>([])
   const queryClient = useQueryClient()
 
   const { register, handleSubmit, reset } = useForm<ScheduleForm>()
@@ -28,6 +30,10 @@ export default function RecruiterInterviews() {
   const interviews = useQuery({
     queryKey: ['recruiter-interviews'],
     queryFn: () => recruiterInterviews().then((r) => r.data.data),
+  })
+  const staff = useQuery({
+    queryKey: ['recruiter-interviewers'],
+    queryFn: () => recruiterInterviewers().then((r) => r.data.data),
   })
 
   const onSubmit = async (data: ScheduleForm) => {
@@ -41,8 +47,10 @@ export default function RecruiterInterviews() {
         location: data.location || undefined,
         meeting_url: data.meeting_url || undefined,
         notes: data.notes || undefined,
+        interviewers,
       })
       reset()
+      setInterviewers([])
       queryClient.invalidateQueries({ queryKey: ['recruiter-interviews'] })
     } catch {
       setError('Could not schedule interview.')
@@ -106,6 +114,33 @@ export default function RecruiterInterviews() {
               <div>
                 <Label>Scheduled at</Label>
                 <Input type="datetime-local" required {...register('scheduled_at')} />
+              </div>
+              <div>
+                <Label>Interviewers</Label>
+                <div className="flex flex-wrap gap-2">
+                  {staff.data?.map((s) => (
+                    <label
+                      key={s.id}
+                      className={`cursor-pointer rounded-full border px-3 py-1 text-sm transition-colors ${
+                        interviewers.includes(s.id)
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-line bg-white/70 text-foreground/70 hover:bg-white'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={interviewers.includes(s.id)}
+                        onChange={() =>
+                          setInterviewers((cur) =>
+                            cur.includes(s.id) ? cur.filter((i) => i !== s.id) : [...cur, s.id],
+                          )
+                        }
+                      />
+                      {s.name}
+                    </label>
+                  ))}
+                </div>
               </div>
               <div>
                 <Label>Location</Label>

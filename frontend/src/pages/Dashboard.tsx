@@ -18,9 +18,24 @@ export default function Dashboard() {
             to: '/recruiter/dashboard',
           },
           {
+            title: 'Jobs',
+            subtitle: 'Create and manage your job offers',
+            to: '/recruiter/jobs',
+          },
+          {
             title: 'Applications',
             subtitle: 'Review candidates and move them through the pipeline',
             to: '/recruiter/applications',
+          },
+          {
+            title: 'Interviews',
+            subtitle: 'Schedule and manage candidate interviews',
+            to: '/recruiter/interviews',
+          },
+          {
+            title: 'Evaluations',
+            subtitle: 'Score candidates after their interviews',
+            to: '/recruiter/evaluations',
           },
           { title: 'Browse Jobs', subtitle: 'View published job offers', to: '/jobs' },
         ]

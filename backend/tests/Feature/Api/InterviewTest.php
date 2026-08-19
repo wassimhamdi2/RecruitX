@@ -8,8 +8,10 @@ use App\Models\Candidate;
 use App\Models\Company;
 use App\Models\JobOffer;
 use App\Models\User;
+use App\Notifications\InterviewScheduled;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class InterviewTest extends TestCase
@@ -20,6 +22,7 @@ class InterviewTest extends TestCase
     {
         parent::setUp();
         $this->seed(RolePermissionSeeder::class);
+        Notification::fake();
     }
 
     private function candidateUser(): User
@@ -201,5 +204,38 @@ class InterviewTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'rescheduled')
             ->assertJsonPath('data.scheduled_at', \Illuminate\Support\Carbon::parse($newTime)->toJSON());
+    }
+
+    public function test_reschedule_notifies_candidate(): void
+    {
+        $recruiter = $this->recruiterUser();
+        $application = $this->application();
+        $this->actingAs($recruiter, 'sanctum')
+            ->postJson("/api/v1/applications/{$application->id}/interviews", [
+                'type' => 'video',
+                'scheduled_at' => now()->addDay()->toDateTimeString(),
+            ])->assertCreated();
+
+        $candidate = Application::find($application->id)->candidate->user;
+        $interviewId = Application::find($application->id)->interviews->first()->id;
+
+        $this->actingAs($recruiter, 'sanctum')
+            ->patchJson("/api/v1/interviews/{$interviewId}", [
+                'status' => 'rescheduled',
+                'scheduled_at' => now()->addDays(2)->toDateTimeString(),
+            ])->assertOk();
+
+        Notification::assertSentTo($candidate, InterviewScheduled::class, fn ($n) => $n->event === 'rescheduled');
+    }
+
+    public function test_interviewers_endpoint_lists_staff(): void
+    {
+        $recruiter = $this->recruiterUser();
+        $other = $this->recruiterUser();
+
+        $this->actingAs($recruiter, 'sanctum')
+            ->getJson('/api/v1/recruiter/interviewers')
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
     }
 }

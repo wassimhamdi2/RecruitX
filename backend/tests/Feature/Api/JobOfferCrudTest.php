@@ -161,4 +161,14 @@ class JobOfferCrudTest extends TestCase
             'status' => 'published',
         ]);
     }
+
+    public function test_skills_listable(): void
+    {
+        Skill::create(['name' => 'Laravel']);
+
+        $this->actingAs($this->recruiter(), 'sanctum')
+            ->getJson('/api/v1/skills')
+            ->assertOk()
+            ->assertJsonPath('data.0.name', 'Laravel');
+    }
 }

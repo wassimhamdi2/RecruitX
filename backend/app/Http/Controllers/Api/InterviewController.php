@@ -9,6 +9,7 @@ use App\Http\Resources\InterviewResource;
 use App\Models\Application;
 use App\Models\Interview;
 use App\Models\InterviewParticipant;
+use App\Models\User;
 use App\Notifications\InterviewScheduled;
 use App\Support\Audit;
 use Illuminate\Http\Request;
@@ -108,6 +109,15 @@ class InterviewController extends Controller
         return InterviewResource::collection($interviews);
     }
 
+    public function interviewers(): JsonResponse
+    {
+        $staff = User::whereHas('roles', fn ($q) => $q->whereIn('name', ['recruiter', 'admin']))
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+
+        return response()->json(['data' => $staff]);
+    }
+
     public function update(Request $request, Interview $interview): InterviewResource
     {
         $data = $request->validate([
@@ -137,8 +147,21 @@ class InterviewController extends Controller
             $interview->notes = $data['notes'];
         }
 
+        $event = null;
+        if ($interview->isDirty('status') && $interview->status === InterviewStatus::CANCELLED) {
+            $event = 'cancelled';
+        } elseif ($interview->isDirty('scheduled_at')) {
+            $event = 'rescheduled';
+        }
+
         $before = $interview->getOriginal();
         $interview->save();
+
+        if ($event) {
+            $interview->load('application.jobOffer');
+            $interview->application->candidate->user->notify(new InterviewScheduled($interview, $event));
+        }
+
         Audit::record('interview.updated', $interview, [
             'status' => $before['status'] ?? null,
             'scheduled_at' => $before['scheduled_at'] ?? null,

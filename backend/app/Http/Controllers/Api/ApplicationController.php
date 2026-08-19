@@ -90,7 +90,12 @@ class ApplicationController extends Controller
 
     public function recruiterIndex(Request $request): AnonymousResourceCollection
     {
+        // ponytail: recruiters only see applications for jobs they created.
         $applications = Application::query()
+            ->when(
+                ! $request->user()->hasRole('admin'),
+                fn ($q) => $q->whereHas('jobOffer', fn ($j) => $j->where('created_by', $request->user()->id)),
+            )
             ->with('candidate.cv', 'jobOffer.company')
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->when($request->job_id, fn ($q, $id) => $q->where('job_offer_id', $id))
@@ -98,6 +103,31 @@ class ApplicationController extends Controller
             ->paginate($request->integer('per_page', 15));
 
         return ApplicationResource::collection($applications);
+    }
+
+    public function history(Request $request, Application $application): JsonResponse
+    {
+        $user = $request->user();
+
+        abort_unless(
+            $user->can('applications.view') || ($application->candidate_id === $user->candidate?->id),
+            403,
+        );
+
+        $history = $application->statusHistories()
+            ->with('changedBy:id,name')
+            ->orderBy('created_at')
+            ->get()
+            ->map(fn (ApplicationStatusHistory $h) => [
+                'id' => $h->id,
+                'from_status' => $h->from_status,
+                'to_status' => $h->to_status,
+                'comment' => $h->comment,
+                'changed_by' => $h->changedBy?->name,
+                'created_at' => $h->created_at,
+            ]);
+
+        return response()->json(['data' => $history]);
     }
 
     public function updateStatus(Request $request, Application $application): ApplicationResource

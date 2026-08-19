@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\EvaluationController;
 use App\Http\Controllers\Api\InterviewController;
 use App\Http\Controllers\Api\JobOfferController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\SkillController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -33,16 +34,19 @@ Route::prefix('v1')->group(function () {
         Route::delete('/jobs/{job}', [JobOfferController::class, 'destroy'])->middleware('permission:jobs.delete');
 
         Route::get('/companies', [AdminCompanyController::class, 'index'])->middleware('permission:companies.view');
+        Route::get('/skills', [SkillController::class, 'index'])->middleware('permission:jobs.view');
 
         Route::post('/jobs/{job}/apply', [ApplicationController::class, 'store'])->middleware('permission:applications.create');
         Route::get('/applications', [ApplicationController::class, 'index'])->middleware('permission:applications.view-own');
 
         Route::get('/recruiter/applications', [ApplicationController::class, 'recruiterIndex'])->middleware('permission:applications.view');
+        Route::get('/applications/{application}/history', [ApplicationController::class, 'history']);
         Route::patch('/applications/{application}/status', [ApplicationController::class, 'updateStatus'])->middleware('permission:applications.update');
         Route::get('/applications/{application}/cv', [ApplicationController::class, 'applicationCv'])->middleware('permission:applications.view');
 
         Route::post('/applications/{application}/interviews', [InterviewController::class, 'store'])->middleware('permission:interviews.create');
         Route::get('/recruiter/interviews', [InterviewController::class, 'index'])->middleware('permission:interviews.view');
+        Route::get('/recruiter/interviewers', [InterviewController::class, 'interviewers'])->middleware('permission:interviews.view');
         Route::get('/me/interviews', [InterviewController::class, 'mine'])->middleware('permission:interviews.view-own');
         Route::patch('/interviews/{interview}', [InterviewController::class, 'update'])->middleware('permission:interviews.update');
 

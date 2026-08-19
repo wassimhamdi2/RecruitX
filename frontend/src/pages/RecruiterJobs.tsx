@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { companies, createJob, deleteJob, myJobs, updateJob } from '../services/api'
+import { companies, createJob, deleteJob, myJobs, skills, updateJob } from '../services/api'
 import type { Job } from '../services/api'
 import AppLayout from '../components/AppLayout'
 import { Button } from '../components/ui'
@@ -124,6 +124,11 @@ function JobForm({ job, onClose }: { job: Job; onClose: () => void }) {
         }
       : EMPTY_FORM,
   )
+  const [skillIds, setSkillIds] = useState<number[]>(() => (isEdit ? job.skills.map((s) => s.id) : []))
+  const skillsQuery = useQuery({
+    queryKey: ['skills'],
+    queryFn: () => skills().then((r) => r.data.data),
+  })
   const [error, setError] = useState('')
 
   const save = useMutation({
@@ -133,6 +138,7 @@ function JobForm({ job, onClose }: { job: Job; onClose: () => void }) {
         ;(payload as Record<string, unknown>)[k] = (form as Record<string, string>)[k] === '' ? null : Number((form as Record<string, string>)[k])
       }
       if (!form.closing_date) payload.closing_date = null
+      payload.skills = skillIds
       return isEdit ? updateJob(job.id, payload) : createJob(payload)
     },
     onSuccess: () => {
@@ -240,6 +246,32 @@ function JobForm({ job, onClose }: { job: Job; onClose: () => void }) {
             Closing date
             <input value={form.closing_date} onChange={set('closing_date')} type="date" className={input} />
           </label>
+        </div>
+
+        <div className="mt-4">
+          <span className="text-sm">Skills</span>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {skillsQuery.data?.map((s) => (
+              <label
+                key={s.id}
+                className={`cursor-pointer rounded-full border px-3 py-1 text-sm transition-colors ${
+                  skillIds.includes(s.id)
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-line bg-white/70 text-foreground/70 hover:bg-white'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  checked={skillIds.includes(s.id)}
+                  onChange={() =>
+                    setSkillIds((cur) => (cur.includes(s.id) ? cur.filter((i) => i !== s.id) : [...cur, s.id]))
+                  }
+                />
+                {s.name}
+              </label>
+            ))}
+          </div>
         </div>
 
         <div className="mt-5 flex justify-end gap-2">

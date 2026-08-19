@@ -30,6 +30,7 @@ class JobOfferResource extends JsonResource
             'status' => $this->status,
             'published_at' => $this->published_at,
             'skills' => $this->whenLoaded('skills', $this->skills->map(fn ($s) => [
+                'id' => $s->id,
                 'name' => $s->name,
                 'required_level' => $s->pivot->required_level,
                 'is_required' => (bool) $s->pivot->is_required,

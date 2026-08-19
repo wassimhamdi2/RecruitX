@@ -34,7 +34,7 @@ export interface Job {
   closing_date: string | null
   status?: string
   published_at?: string | null
-  skills: { name: string; required_level: string | null; is_required: boolean }[]
+  skills: { id: number; name: string; required_level: string | null; is_required: boolean }[]
 }
 
 export interface Application {
@@ -103,6 +103,7 @@ export interface ScheduleInterviewInput {
   location?: string
   meeting_url?: string
   notes?: string
+  interviewers?: number[]
 }
 
 export const listJobs = (params?: Record<string, string>) => api.get<{ data: Job[] }>('/jobs', { params })
@@ -116,6 +117,10 @@ export const companies = () => api.get<{ data: { id: number; name: string }[] }>
 export const myApplications = () => api.get<{ data: Application[] }>('/applications')
 export const recruiterApplications = (params?: Record<string, string>) =>
   api.get<{ data: Application[] }>('/recruiter/applications', { params })
+export const applicationHistory = (id: number) =>
+  api.get<{ data: { id: number; from_status: string | null; to_status: string; comment: string | null; changed_by: string | null; created_at: string }[] }>(
+    `/applications/${id}/history`,
+  )
 export const changeApplicationStatus = (id: number, status: string, comment?: string) =>
   api.patch<{ data: Application }>(`/applications/${id}/status`, { status, comment })
 
@@ -152,6 +157,8 @@ export const scheduleInterview = (applicationId: number, input: ScheduleIntervie
   api.post<{ data: Interview }>(`/applications/${applicationId}/interviews`, input)
 export const recruiterInterviews = (params?: Record<string, string>) =>
   api.get<{ data: Interview[] }>('/recruiter/interviews', { params })
+export const recruiterInterviewers = () => api.get<{ data: { id: number; name: string; email: string }[] }>('/recruiter/interviewers')
+export const skills = () => api.get<{ data: { id: number; name: string }[] }>('/skills')
 export const myInterviews = () => api.get<{ data: Interview[] }>('/me/interviews')
 export const updateInterview = (
   id: number,
