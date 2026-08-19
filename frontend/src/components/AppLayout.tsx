@@ -17,8 +17,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const nav = [
     { label: 'Jobs', to: '/jobs', show: true },
     { label: 'My Applications', to: '/applications', show: !isStaff },
+    { label: 'My Interviews', to: '/me/interviews', show: !isStaff },
     { label: 'Profile', to: '/profile', show: !isStaff },
     { label: 'Applications', to: '/recruiter/applications', show: isStaff },
+    { label: 'Interviews', to: '/recruiter/interviews', show: isStaff },
   ].filter((n) => n.show)
 
   return (

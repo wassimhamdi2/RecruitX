@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ApplicationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CandidateProfileController;
+use App\Http\Controllers\Api\InterviewController;
 use App\Http\Controllers\Api\JobOfferController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +27,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/recruiter/applications', [ApplicationController::class, 'recruiterIndex'])->middleware('permission:applications.view');
         Route::patch('/applications/{application}/status', [ApplicationController::class, 'updateStatus'])->middleware('permission:applications.update');
         Route::get('/applications/{application}/cv', [ApplicationController::class, 'applicationCv'])->middleware('permission:applications.view');
+
+        Route::post('/applications/{application}/interviews', [InterviewController::class, 'store'])->middleware('permission:interviews.create');
+        Route::get('/recruiter/interviews', [InterviewController::class, 'index'])->middleware('permission:interviews.view');
+        Route::get('/me/interviews', [InterviewController::class, 'mine'])->middleware('permission:interviews.view-own');
+        Route::patch('/interviews/{interview}', [InterviewController::class, 'update'])->middleware('permission:interviews.update');
 
         Route::middleware('role:candidate')->group(function () {
             Route::get('/me/profile', [CandidateProfileController::class, 'show']);

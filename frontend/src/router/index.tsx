@@ -6,8 +6,10 @@ import Jobs from '../pages/Jobs'
 import JobDetail from '../pages/JobDetail'
 import Login from '../pages/Login'
 import MyApplications from '../pages/MyApplications'
+import MyInterviews from '../pages/MyInterviews'
 import Profile from '../pages/Profile'
 import RecruiterApplications from '../pages/RecruiterApplications'
+import RecruiterInterviews from '../pages/RecruiterInterviews'
 import Register from '../pages/Register'
 
 export default function AppRouter() {
@@ -60,10 +62,26 @@ export default function AppRouter() {
         }
       />
       <Route
+        path="/me/interviews"
+        element={
+          <ProtectedRoute>
+            {!isStaff ? <MyInterviews /> : <Navigate to="/" replace />}
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/recruiter/applications"
         element={
           <ProtectedRoute>
             {isStaff ? <RecruiterApplications /> : <Navigate to="/" replace />}
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recruiter/interviews"
+        element={
+          <ProtectedRoute>
+            {isStaff ? <RecruiterInterviews /> : <Navigate to="/" replace />}
           </ProtectedRoute>
         }
       />

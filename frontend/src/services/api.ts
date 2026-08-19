@@ -70,6 +70,35 @@ export interface CandidateProfile {
   expected_salary: string | null
 }
 
+export interface Interview {
+  id: number
+  type: string
+  status: string
+  scheduled_at: string
+  duration: number
+  location: string | null
+  meeting_url: string | null
+  notes: string | null
+  candidate?: {
+    id: number
+    name: string
+  } | null
+  job?: {
+    title: string
+    company: string | null
+  } | null
+  participants?: { name: string | null; role: string | null }[]
+}
+
+export interface ScheduleInterviewInput {
+  type: string
+  scheduled_at: string
+  duration?: number
+  location?: string
+  meeting_url?: string
+  notes?: string
+}
+
 export const listJobs = (params?: Record<string, string>) => api.get<{ data: Job[] }>('/jobs', { params })
 export const getJob = (slug: string) => api.get<{ data: Job }>(`/jobs/${slug}`)
 export const applyToJob = (id: number) => api.post(`/jobs/${id}/apply`)
@@ -107,6 +136,18 @@ export const downloadApplicationCv = async (applicationId: number) => {
   const { data } = await api.get<Blob>(`/applications/${applicationId}/cv`, { responseType: 'blob' })
   downloadBlob(URL.createObjectURL(data), 'cv.pdf')
 }
+
+export const scheduleInterview = (applicationId: number, input: ScheduleInterviewInput) =>
+  api.post<{ data: Interview }>(`/applications/${applicationId}/interviews`, input)
+export const recruiterInterviews = (params?: Record<string, string>) =>
+  api.get<{ data: Interview[] }>('/recruiter/interviews', { params })
+export const myInterviews = () => api.get<{ data: Interview[] }>('/me/interviews')
+export const updateInterview = (
+  id: number,
+  input: { status?: string; scheduled_at?: string; notes?: string },
+) => api.patch<{ data: Interview }>(`/interviews/${id}`, input)
+
+export const INTERVIEW_TYPES = ['phone', 'video', 'onsite', 'technical', 'hr', 'final'] as const
 
 export const APPLICATION_STATUSES = [
   'applied',

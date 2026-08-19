@@ -20,6 +20,7 @@ class RolePermissionSeeder extends Seeder
             'applications.view', 'applications.create', 'applications.update', 'applications.delete',
             'applications.view-own',
             'interviews.view', 'interviews.create', 'interviews.update',
+            'interviews.view-own',
             'evaluations.view', 'evaluations.create', 'evaluations.update',
             'reports.view',
             'profile.update',
@@ -52,6 +53,7 @@ class RolePermissionSeeder extends Seeder
             'jobs.view',
             'applications.create',
             'applications.view-own',
+            'interviews.view-own',
             'profile.update',
         ]);
     }
