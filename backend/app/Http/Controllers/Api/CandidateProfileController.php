@@ -20,6 +20,8 @@ class CandidateProfileController extends Controller
     {
         abort_unless($candidate = $request->user()->candidate, 403);
 
+        $candidate->has_cv = (bool) $candidate->cv;
+
         return response()->json(['data' => $candidate]);
     }
 

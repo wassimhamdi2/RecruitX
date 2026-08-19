@@ -82,6 +82,8 @@ export default function Profile() {
 
   if (isLoading) return <AppLayout><p className="py-10 text-foreground/60">Loading…</p></AppLayout>
 
+  const hasCv = Boolean(data?.has_cv || cvName)
+
   const onSubmit = async (formData: FormData) => {
     const payload: Partial<CandidateProfile> = {
       ...formData,
@@ -250,10 +252,15 @@ export default function Profile() {
               <Button className="ml-2" onClick={() => downloadOwnCv()}>
                 Download my CV
               </Button>
-              <Button className="ml-2" onClick={handleParse} disabled={parseLoading}>
+              <Button className="ml-2" onClick={handleParse} disabled={parseLoading || !hasCv}>
                 {parseLoading ? 'Parsing…' : 'Parse CV'}
               </Button>
             </div>
+            {!hasCv && (
+              <p className="mt-3 text-sm text-foreground/60">
+                Please upload a CV first, then click “Parse CV”.
+              </p>
+            )}
             {cvName && <p className="mt-3 text-sm font-medium text-accent">{cvName}</p>}
             {cvError && <p className="mt-3 text-sm text-destructive">{cvError}</p>}
             {parseError && <p className="mt-3 text-sm text-destructive">{parseError}</p>}

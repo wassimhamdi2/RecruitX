@@ -73,6 +73,7 @@ export interface CandidateProfile {
   years_of_experience: number | null
   availability: string | null
   expected_salary: string | null
+  has_cv: boolean
 }
 
 export interface Interview {
